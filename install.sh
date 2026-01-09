@@ -7,7 +7,7 @@
 # Install: curl -fsSL https://raw.githubusercontent.com/XProject-hub/Cryonix-Panel/main/install.sh | sudo bash
 #
 
-set -e
+set +e
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -160,7 +160,15 @@ EOF
 
 configure_nginx() {
     log_info "Configuring Nginx..."
-    PHP_VER=$(cat /tmp/php_ver)
+    
+    # Get PHP version - multiple sources
+    if [[ -f /tmp/php_ver ]]; then
+        PHP_VER=$(cat /tmp/php_ver)
+    else
+        PHP_VER=$(php -v 2>/dev/null | head -1 | grep -oP '\d+\.\d+' | head -1)
+        [[ -z "$PHP_VER" ]] && PHP_VER="8.2"
+    fi
+    
     SERVER_IP=$(hostname -I | awk '{print $1}')
     
     cat > /etc/nginx/sites-available/cryonix-panel << EOF
@@ -183,8 +191,23 @@ EOF
 
     ln -sf /etc/nginx/sites-available/cryonix-panel /etc/nginx/sites-enabled/
     rm -f /etc/nginx/sites-enabled/default
-    nginx -t && systemctl reload nginx
-    log_success "Nginx ready"
+    
+    # Test and fix if needed
+    if nginx -t 2>/dev/null; then
+        systemctl reload nginx
+        log_success "Nginx ready (PHP ${PHP_VER})"
+    else
+        # Try to find correct PHP socket
+        for v in 8.3 8.2 8.1 8.0; do
+            if [[ -S "/var/run/php/php${v}-fpm.sock" ]]; then
+                sed -i "s/php${PHP_VER}-fpm/php${v}-fpm/g" /etc/nginx/sites-available/cryonix-panel
+                PHP_VER=$v
+                break
+            fi
+        done
+        nginx -t && systemctl reload nginx
+        log_success "Nginx ready (PHP ${PHP_VER})"
+    fi
 }
 
 configure_firewall() {
