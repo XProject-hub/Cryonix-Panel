@@ -278,12 +278,12 @@ CREATE TABLE IF NOT EXISTS `license_info` (
 INSERT INTO `servers` (`server_name`, `server_ip`, `http_port`, `is_main`, `status`, `created_at`) VALUES
 ('Main Server', '127.0.0.1', 80, 1, 'online', '2026-01-01 00:00:00');
 
--- Default bouquet
-INSERT INTO `bouquets` (`bouquet_name`, `sort_order`, `created_at`) VALUES
+-- Default bouquet (ignore if exists)
+INSERT IGNORE INTO `bouquets` (`bouquet_name`, `sort_order`, `created_at`) VALUES
 ('All Channels', 1, '2026-01-01 00:00:00');
 
--- Default categories
-INSERT INTO `stream_categories` (`category_type`, `category_name`, `sort_order`, `created_at`) VALUES
+-- Default categories (ignore if exists)
+INSERT IGNORE INTO `stream_categories` (`category_type`, `category_name`, `sort_order`, `created_at`) VALUES
 ('live', 'General', 1, '2026-01-01 00:00:00'),
 ('live', 'Sports', 2, '2026-01-01 00:00:00'),
 ('live', 'News', 3, '2026-01-01 00:00:00'),
@@ -294,7 +294,7 @@ INSERT INTO `stream_categories` (`category_type`, `category_name`, `sort_order`,
 ('series', 'Drama', 1, '2026-01-01 00:00:00'),
 ('series', 'Comedy', 2, '2026-01-01 00:00:00');
 
--- Default settings
+-- Default settings (update if exists)
 INSERT INTO `settings` (`key`, `value`, `type`) VALUES
 ('site_name', 'Cryonix IPTV', 'string'),
 ('timezone', 'UTC', 'string'),
@@ -302,7 +302,9 @@ INSERT INTO `settings` (`key`, `value`, `type`) VALUES
 ('stream_buffer_size', '8192', 'int'),
 ('max_connections_per_user', '1', 'int'),
 ('allow_trial_creation', '1', 'bool'),
-('trial_duration_hours', '24', 'int');
+('trial_duration_hours', '24', 'int'),
+('admin_path', 'admin', 'string')
+ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
 
 SET FOREIGN_KEY_CHECKS = 1;
 

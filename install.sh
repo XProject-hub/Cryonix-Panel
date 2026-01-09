@@ -15,7 +15,7 @@ YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-VERSION="1.0.0"
+VERSION="1.1.0"
 GITHUB_REPO="XProject-hub/Cryonix-Panel"
 INSTALL_DIR="/var/www/cryonix-panel"
 DB_NAME="cryonix_panel"
@@ -113,8 +113,10 @@ setup_db() {
     log_info "Setting up database..."
     DB_PASS=$(openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 24)
     
+    # Drop user if exists and recreate with correct password
+    mysql -e "DROP USER IF EXISTS '${DB_USER}'@'localhost';" 2>/dev/null || true
     mysql -e "CREATE DATABASE IF NOT EXISTS ${DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-    mysql -e "CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
+    mysql -e "CREATE USER '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';"
     mysql -e "GRANT ALL ON ${DB_NAME}.* TO '${DB_USER}'@'localhost'; FLUSH PRIVILEGES;"
     
     echo "$DB_PASS" > /tmp/db_pass
@@ -135,6 +137,9 @@ configure_panel() {
     DB_PASS=$(cat /tmp/db_pass)
     SERVER_IP=$(hostname -I | awk '{print $1}')
     
+    # Generate unique admin path
+    ADMIN_PATH="panel_$(openssl rand -hex 4)"
+    
     cat > ${INSTALL_DIR}/.env << EOF
 APP_URL=http://${SERVER_IP}
 APP_DEBUG=false
@@ -143,17 +148,32 @@ DB_HOST=localhost
 DB_NAME=${DB_NAME}
 DB_USER=${DB_USER}
 DB_PASS=${DB_PASS}
+ADMIN_PATH=${ADMIN_PATH}
 GITHUB_REPO=${GITHUB_REPO}
+LICENSE_KEY=${LICENSE_KEY}
 EOF
 
     chown -R www-data:www-data ${INSTALL_DIR}
     chmod 600 ${INSTALL_DIR}/.env
     
-    # Import schema
-    [[ -f "${INSTALL_DIR}/database/schema.sql" ]] && mysql ${DB_NAME} < ${INSTALL_DIR}/database/schema.sql
+    # Import schema using app credentials
+    if [[ -f "${INSTALL_DIR}/database/schema.sql" ]]; then
+        mysql -u"${DB_USER}" -p"${DB_PASS}" ${DB_NAME} < ${INSTALL_DIR}/database/schema.sql 2>/dev/null || \
+        mysql ${DB_NAME} < ${INSTALL_DIR}/database/schema.sql
+    fi
+    
+    # Store admin path in database
+    mysql -u"${DB_USER}" -p"${DB_PASS}" ${DB_NAME} -e "INSERT INTO settings (\`key\`, \`value\`, \`type\`) VALUES ('admin_path', '${ADMIN_PATH}', 'string') ON DUPLICATE KEY UPDATE \`value\`='${ADMIN_PATH}';" 2>/dev/null || true
     
     # Seed admin
-    [[ -f "${INSTALL_DIR}/database/seed.php" ]] && cd ${INSTALL_DIR} && php database/seed.php
+    if [[ -f "${INSTALL_DIR}/database/seed.php" ]]; then
+        cd ${INSTALL_DIR}
+        php database/seed.php 2>/dev/null || true
+    fi
+    
+    # Save admin path to file for reference
+    echo "${ADMIN_PATH}" > ${INSTALL_DIR}/.admin_path
+    chmod 600 ${INSTALL_DIR}/.admin_path
     
     log_success "Configured"
 }
@@ -185,7 +205,7 @@ server {
         fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
         include fastcgi_params;
     }
-    location ~ /\.(ht|git|env) { deny all; }
+    location ~ /\.(ht|git|env|admin_path) { deny all; }
 }
 EOF
 
@@ -225,31 +245,42 @@ configure_firewall() {
 activate_license() {
     if [[ -n "$LICENSE_KEY" ]]; then
         log_info "Activating license..."
-        cd ${INSTALL_DIR}
-        php -r "
-        require 'core/Database.php';
-        require 'core/License.php';
-        \$l = new CryonixPanel\Core\License();
-        \$r = \$l->activate('${LICENSE_KEY}');
-        echo \$r['success'] ? 'License activated!' : 'Failed: '.(\$r['error']??'unknown');
-        " 2>/dev/null || echo "License activation skipped"
+        
+        # Call Cloud API to activate
+        SERVER_IP=$(hostname -I | awk '{print $1}')
+        RESPONSE=$(curl -s -X POST "https://cryonix.io/api/v1/license/activate" \
+            -H "Content-Type: application/json" \
+            -d "{\"license_key\":\"${LICENSE_KEY}\",\"server_ip\":\"${SERVER_IP}\"}" 2>/dev/null)
+        
+        if echo "$RESPONSE" | grep -q '"success":true'; then
+            log_success "License activated!"
+        else
+            echo -e "${YELLOW}[!]${NC} License activation pending - activate manually in panel"
+        fi
+    else
+        echo -e "${YELLOW}[!]${NC} No license provided - activate in panel settings"
     fi
 }
 
 print_summary() {
     SERVER_IP=$(hostname -I | awk '{print $1}')
+    ADMIN_PATH=$(cat ${INSTALL_DIR}/.admin_path 2>/dev/null || echo "admin")
+    
     echo ""
     echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
     echo -e "${GREEN}       CRYONIX PANEL INSTALLATION COMPLETE!${NC}"
     echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
     echo ""
-    echo -e "  ${CYAN}Panel URL:${NC}     http://${SERVER_IP}/admin"
+    echo -e "  ${CYAN}Panel URL:${NC}     http://${SERVER_IP}/${ADMIN_PATH}"
     echo ""
     echo -e "  ${CYAN}Login:${NC}"
     echo -e "      Username:  ${YELLOW}admin${NC}"
     echo -e "      Password:  ${YELLOW}Cryonix${NC}"
     echo ""
-    [[ -z "$LICENSE_KEY" ]] && echo -e "  ${YELLOW}⚠ Don't forget to activate your license in admin panel!${NC}"
+    echo -e "  ${YELLOW}⚠ IMPORTANT: Save your admin path!${NC}"
+    echo -e "  ${YELLOW}  Your secret admin URL: /${ADMIN_PATH}${NC}"
+    echo ""
+    [[ -z "$LICENSE_KEY" ]] && echo -e "  ${YELLOW}⚠ Activate your license at: /${ADMIN_PATH}/settings${NC}"
     echo ""
     echo -e "${GREEN}════════════════════════════════════════════════════════════${NC}"
     
@@ -272,4 +303,3 @@ main() {
 }
 
 main "$@"
-

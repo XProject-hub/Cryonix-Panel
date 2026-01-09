@@ -8,6 +8,22 @@
 define('CRYONIX_ROOT', dirname(__DIR__));
 define('CRYONIX_START', microtime(true));
 
+// Load environment
+$envFile = CRYONIX_ROOT . '/.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos($line, '=') !== false && strpos($line, '#') !== 0) {
+            list($key, $value) = explode('=', $line, 2);
+            $_ENV[trim($key)] = trim($value);
+        }
+    }
+}
+
+// Get admin path from env or default
+$ADMIN_PATH = $_ENV['ADMIN_PATH'] ?? 'admin';
+define('ADMIN_PATH', '/' . $ADMIN_PATH);
+
 // Autoloader
 spl_autoload_register(function ($class) {
     $prefix = 'CryonixPanel\\';
@@ -27,15 +43,22 @@ session_start();
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
 
+// Check if accessing admin panel
+$isAdminRoute = str_starts_with($uri, ADMIN_PATH);
+
 // Check license on admin routes
-if (str_starts_with($uri, '/admin') || $uri === '/dashboard') {
-    $license = new License();
-    if (!$license->isValid()) {
-        // Redirect to license activation
-        if ($uri !== '/admin/license') {
-            header('Location: /admin/license');
-            exit;
+if ($isAdminRoute || $uri === '/dashboard') {
+    try {
+        $license = new License();
+        if (!$license->isValid()) {
+            // Redirect to license activation
+            if ($uri !== ADMIN_PATH . '/license') {
+                header('Location: ' . ADMIN_PATH . '/license');
+                exit;
+            }
         }
+    } catch (\Exception $e) {
+        // Database not ready yet, allow access to license page
     }
 }
 
@@ -71,36 +94,36 @@ switch (true) {
         require CRYONIX_ROOT . '/api/epg.php';
         break;
         
-    // Admin panel
-    case $uri === '/admin' || $uri === '/admin/':
-        header('Location: /admin/dashboard');
+    // Admin panel - dynamic path
+    case $uri === ADMIN_PATH || $uri === ADMIN_PATH . '/':
+        header('Location: ' . ADMIN_PATH . '/dashboard');
         exit;
         
-    case $uri === '/admin/login' && $method === 'GET':
+    case $uri === ADMIN_PATH . '/login' && $method === 'GET':
         require CRYONIX_ROOT . '/views/admin/login.php';
         break;
         
-    case $uri === '/admin/login' && $method === 'POST':
+    case $uri === ADMIN_PATH . '/login' && $method === 'POST':
         require CRYONIX_ROOT . '/controllers/AuthController.php';
         (new \CryonixPanel\Controllers\AuthController())->login();
         break;
         
-    case $uri === '/admin/logout':
+    case $uri === ADMIN_PATH . '/logout':
         require CRYONIX_ROOT . '/controllers/AuthController.php';
         (new \CryonixPanel\Controllers\AuthController())->logout();
         break;
         
-    case $uri === '/admin/license':
+    case $uri === ADMIN_PATH . '/license':
         require CRYONIX_ROOT . '/views/admin/license.php';
         break;
         
-    case $uri === '/admin/license/activate' && $method === 'POST':
+    case $uri === ADMIN_PATH . '/license/activate' && $method === 'POST':
         require CRYONIX_ROOT . '/controllers/LicenseController.php';
         (new \CryonixPanel\Controllers\LicenseController())->activate();
         break;
         
     // Update system routes
-    case $uri === '/admin/update/check':
+    case $uri === ADMIN_PATH . '/update/check':
         if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
             header('Content-Type: application/json');
             echo json_encode(['error' => 'Unauthorized']);
@@ -110,7 +133,7 @@ switch (true) {
         (new \CryonixPanel\Controllers\UpdateController())->check();
         break;
         
-    case $uri === '/admin/update/apply' && $method === 'POST':
+    case $uri === ADMIN_PATH . '/update/apply' && $method === 'POST':
         if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
             header('Content-Type: application/json');
             echo json_encode(['success' => false, 'error' => 'Unauthorized']);
@@ -120,22 +143,31 @@ switch (true) {
         (new \CryonixPanel\Controllers\UpdateController())->apply();
         break;
         
-    case str_starts_with($uri, '/admin'):
+    case str_starts_with($uri, ADMIN_PATH):
         // Check auth for admin
         if (!isset($_SESSION['user_id'])) {
-            header('Location: /admin/login');
+            header('Location: ' . ADMIN_PATH . '/login');
             exit;
         }
+        // Pass the relative path within admin to router
+        $_SERVER['ADMIN_PATH'] = ADMIN_PATH;
+        $_SERVER['ADMIN_ROUTE'] = substr($uri, strlen(ADMIN_PATH));
         require CRYONIX_ROOT . '/views/admin/router.php';
         break;
         
     // Default - show login or redirect
     case $uri === '/' || $uri === '':
-        header('Location: /admin/login');
+        header('Location: ' . ADMIN_PATH . '/login');
+        exit;
+        
+    // Old /admin route - redirect to new path
+    case str_starts_with($uri, '/admin'):
+        // Redirect old /admin/* to new path for backwards compatibility
+        $newPath = ADMIN_PATH . substr($uri, 6);
+        header('Location: ' . $newPath);
         exit;
         
     default:
         http_response_code(404);
         echo json_encode(['error' => 'Not Found']);
 }
-

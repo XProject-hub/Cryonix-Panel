@@ -5,6 +5,19 @@
  * Copyright 2026 XProject-Hub
  */
 
+// Load environment first
+$envFile = __DIR__ . '/../.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos($line, '=') !== false && strpos($line, '#') !== 0) {
+            list($key, $value) = explode('=', $line, 2);
+            $_ENV[trim($key)] = trim($value);
+            putenv(trim($key) . '=' . trim($value));
+        }
+    }
+}
+
 require_once __DIR__ . '/../core/Database.php';
 
 use CryonixPanel\Core\Database;
@@ -35,7 +48,8 @@ try {
         
         echo "✓ Created admin user:\n";
         echo "  Username: {$config['default_admin']['username']}\n";
-        echo "  Password: {$config['default_admin']['password']}\n\n";
+        echo "  Password: {$config['default_admin']['password']}\n";
+        echo "  Email: {$config['default_admin']['email']}\n\n";
     }
     
     echo "=== Seeding Complete ===\n";
@@ -44,4 +58,3 @@ try {
     echo "ERROR: " . $e->getMessage() . "\n";
     exit(1);
 }
-
