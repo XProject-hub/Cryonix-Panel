@@ -99,6 +99,27 @@ switch (true) {
         (new \CryonixPanel\Controllers\LicenseController())->activate();
         break;
         
+    // Update system routes
+    case $uri === '/admin/update/check':
+        if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
+            header('Content-Type: application/json');
+            echo json_encode(['error' => 'Unauthorized']);
+            exit;
+        }
+        require CRYONIX_ROOT . '/controllers/UpdateController.php';
+        (new \CryonixPanel\Controllers\UpdateController())->check();
+        break;
+        
+    case $uri === '/admin/update/apply' && $method === 'POST':
+        if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+            exit;
+        }
+        require CRYONIX_ROOT . '/controllers/UpdateController.php';
+        (new \CryonixPanel\Controllers\UpdateController())->apply();
+        break;
+        
     case str_starts_with($uri, '/admin'):
         // Check auth for admin
         if (!isset($_SESSION['user_id'])) {
