@@ -91,6 +91,7 @@ CREATE TABLE IF NOT EXISTS `streams` (
     `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     `stream_display_name` VARCHAR(255) NOT NULL,
     `stream_source` TEXT NOT NULL COMMENT 'Source URL',
+    `stream_type` ENUM('live', 'created_live', 'radio') NOT NULL DEFAULT 'live',
     `stream_icon` VARCHAR(512) NULL,
     `epg_channel_id` VARCHAR(100) NULL,
     `category_id` INT UNSIGNED NULL,
@@ -106,7 +107,8 @@ CREATE TABLE IF NOT EXISTS `streams` (
     FOREIGN KEY (`category_id`) REFERENCES `stream_categories`(`id`) ON DELETE SET NULL,
     FOREIGN KEY (`added_by`) REFERENCES `users`(`id`) ON DELETE SET NULL,
     INDEX `idx_streams_cat` (`category_id`),
-    INDEX `idx_streams_status` (`status`)
+    INDEX `idx_streams_status` (`status`),
+    INDEX `idx_streams_type` (`stream_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================

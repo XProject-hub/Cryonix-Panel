@@ -116,17 +116,21 @@ ob_start();
 <form method="POST">
     <!-- Tabs -->
     <div class="flex gap-1 mb-6">
-        <button type="button" class="tab-btn active px-6 py-2.5 rounded-lg bg-gray-800 text-gray-300 font-medium" data-tab="details">
-            📋 DETAILS
+        <button type="button" class="tab-btn active px-5 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm font-medium flex items-center gap-2" data-tab="details">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            DETAILS
         </button>
-        <button type="button" class="tab-btn px-6 py-2.5 rounded-lg bg-gray-800 text-gray-300 font-medium" data-tab="advanced">
-            ⚙️ ADVANCED
+        <button type="button" class="tab-btn px-5 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm font-medium flex items-center gap-2" data-tab="advanced">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+            ADVANCED
         </button>
-        <button type="button" class="tab-btn px-6 py-2.5 rounded-lg bg-gray-800 text-gray-300 font-medium" data-tab="restrictions">
-            ⚠️ RESTRICTIONS
+        <button type="button" class="tab-btn px-5 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm font-medium flex items-center gap-2" data-tab="restrictions">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            RESTRICTIONS
         </button>
-        <button type="button" class="tab-btn px-6 py-2.5 rounded-lg bg-gray-800 text-gray-300 font-medium" data-tab="bouquets">
-            📦 BOUQUETS
+        <button type="button" class="tab-btn px-5 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm font-medium flex items-center gap-2" data-tab="bouquets">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            BOUQUETS
         </button>
     </div>
     
@@ -295,46 +299,20 @@ ob_start();
     </div>
     
     <!-- Footer Actions -->
-    <div class="flex justify-between mt-6">
-        <button type="button" id="prev-btn" class="px-6 py-2.5 rounded-lg bg-gray-700 text-white font-medium hover:bg-gray-600 transition hidden">
-            ← Previous
+    <div class="flex justify-end mt-6">
+        <button type="submit" class="px-6 py-2.5 rounded-lg bg-teal-500 text-white text-sm font-medium hover:bg-teal-600 transition flex items-center gap-2">
+            Next <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
         </button>
-        <div class="flex gap-3 ml-auto">
-            <button type="button" id="next-btn" class="px-6 py-2.5 rounded-lg bg-teal-600 text-white font-medium hover:bg-teal-500 transition">
-                Next →
-            </button>
-            <button type="submit" id="submit-btn" class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium hover:from-cyan-600 hover:to-blue-600 transition hidden">
-                <?= $isEdit ? 'Update User' : 'Add User' ?>
-            </button>
-        </div>
     </div>
 </form>
 
 <script>
-const tabs = ['details', 'advanced', 'restrictions', 'bouquets'];
-let currentTab = 0;
-
 document.querySelectorAll('.tab-btn').forEach((btn, i) => {
-    btn.addEventListener('click', () => switchTab(i));
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach((b, j) => b.classList.toggle('active', i === j));
+        document.querySelectorAll('.tab-content').forEach((c, j) => c.classList.toggle('active', i === j));
+    });
 });
-
-document.getElementById('next-btn').addEventListener('click', () => {
-    if (currentTab < tabs.length - 1) switchTab(currentTab + 1);
-});
-
-document.getElementById('prev-btn').addEventListener('click', () => {
-    if (currentTab > 0) switchTab(currentTab - 1);
-});
-
-function switchTab(index) {
-    currentTab = index;
-    document.querySelectorAll('.tab-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
-    document.querySelectorAll('.tab-content').forEach((content, i) => content.classList.toggle('active', i === index));
-    
-    document.getElementById('prev-btn').classList.toggle('hidden', index === 0);
-    document.getElementById('next-btn').classList.toggle('hidden', index === tabs.length - 1);
-    document.getElementById('submit-btn').classList.toggle('hidden', index !== tabs.length - 1);
-}
 
 function addIp() {
     const ip = document.getElementById('new-ip').value.trim();
