@@ -90,8 +90,9 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
                     </button>
                     <div class="dropdown">
                         <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1">
-                            <a href="<?= $adminPath ?>/servers" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">All Servers</a>
                             <a href="<?= $adminPath ?>/servers/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add Load Balancer</a>
+                            <a href="<?= $adminPath ?>/servers/install" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Install Load Balancer</a>
+                            <a href="<?= $adminPath ?>/servers" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Manage Servers</a>
                         </div>
                     </div>
                 </div>

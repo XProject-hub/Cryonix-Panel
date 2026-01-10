@@ -98,6 +98,8 @@ switch ($section) {
     case 'servers':
         if ($action === 'add' || $action === 'edit') {
             require CRYONIX_ROOT . '/views/admin/servers-add.php';
+        } elseif ($action === 'install') {
+            require CRYONIX_ROOT . '/views/admin/servers-install.php';
         } elseif ($action === 'delete' && $id) {
             // Handle server deletion
             require_once CRYONIX_ROOT . '/core/Database.php';
