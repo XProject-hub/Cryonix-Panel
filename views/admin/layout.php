@@ -215,8 +215,14 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
     </header>
     
     <!-- Main Content -->
-    <main class="p-6">
+    <main class="p-6 pb-16">
         <?= $content ?? '' ?>
     </main>
+    
+    <!-- Footer -->
+    <footer class="fixed bottom-0 left-0 right-0 h-10 bg-dark-900 border-t border-gray-800/50 flex items-center justify-between px-6 text-xs">
+        <span class="text-gray-500">IPTV Management by <span class="text-cryo-400">X Project</span></span>
+        <span class="text-gray-600">Version <?= file_exists(CRYONIX_ROOT . '/VERSION') ? trim(file_get_contents(CRYONIX_ROOT . '/VERSION')) : '1.0.0' ?></span>
+    </footer>
 </body>
 </html>

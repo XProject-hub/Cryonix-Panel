@@ -74,8 +74,16 @@ class Updater {
         curl_close($ch);
         $data = json_decode($response, true);
         
-        // Compare commit date with our VERSION file date
-        $latestVersion = date('Y.m.d.Hi');
+        // Get version from GitHub VERSION file
+        $versionUrl = "https://raw.githubusercontent.com/{$this->githubRepo}/main/VERSION";
+        $ch = curl_init($versionUrl);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 10,
+            CURLOPT_HTTPHEADER => $this->getHeaders()
+        ]);
+        $latestVersion = trim(curl_exec($ch)) ?: date('Y.m.d.Hi');
+        curl_close($ch);
         
         return [
             'available' => true,
