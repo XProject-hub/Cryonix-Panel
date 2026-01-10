@@ -197,7 +197,7 @@ ob_start();
     </a>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
     <?php foreach ($servers as $server): 
         $isMain = $server['is_main'] == 1;
         $isOnline = ($server['status'] ?? 'online') === 'online';
@@ -211,84 +211,38 @@ ob_start();
         $bandwidthIn = $server['bandwidth_in'] ?? 0;
         $bandwidthOut = $server['bandwidth_out'] ?? 0;
     ?>
-    <div class="glass rounded-xl border <?= $isOnline ? 'border-gray-800/50' : 'border-red-500/30' ?> overflow-hidden">
-        <!-- Server Header -->
-        <div class="flex items-center justify-between px-4 py-3 <?= $isMain ? 'bg-blue-500/10' : 'bg-gray-800/50' ?> border-b border-gray-800/50">
-            <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full <?= $isOnline ? 'bg-green-400' : 'bg-red-400' ?>"></span>
-                <span class="text-white font-medium text-sm"><?= htmlspecialchars($server['server_name']) ?></span>
-                <?php if ($isMain): ?>
-                <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 text-xs">MAIN</span>
-                <?php endif; ?>
+    <div class="glass rounded-lg border <?= $isOnline ? 'border-gray-800/50' : 'border-red-500/30' ?> overflow-hidden">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-3 py-2 <?= $isMain ? 'bg-blue-500/10' : 'bg-gray-800/50' ?> border-b border-gray-800/50">
+            <div class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full <?= $isOnline ? 'bg-green-400' : 'bg-red-400' ?>"></span>
+                <span class="text-white font-medium text-xs"><?= htmlspecialchars($server['server_name']) ?></span>
+                <?php if ($isMain): ?><span class="px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 text-[10px]">MAIN</span><?php endif; ?>
             </div>
-            <div class="flex items-center gap-2">
-                <span class="text-gray-400 text-xs"><?= htmlspecialchars($server['server_ip']) ?></span>
-                <a href="<?= ADMIN_PATH ?>/servers/edit/<?= $server['id'] ?>" class="text-gray-500 hover:text-white transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                </a>
-            </div>
+            <span class="text-gray-500 text-[10px]"><?= htmlspecialchars($server['server_ip']) ?></span>
         </div>
         
-        <!-- Server Stats -->
-        <div class="p-4">
-            <div class="grid grid-cols-4 gap-3 mb-4">
-                <div>
-                    <div class="text-gray-500 text-xs mb-1">Conns.</div>
-                    <div class="px-2 py-1 rounded bg-blue-500/10 text-blue-400 text-sm font-semibold text-center"><?= number_format($connections) ?></div>
-                </div>
-                <div>
-                    <div class="text-gray-500 text-xs mb-1">Users</div>
-                    <div class="px-2 py-1 rounded bg-gray-800 text-white text-sm font-semibold text-center"><?= number_format($users) ?></div>
-                </div>
-                <div>
-                    <div class="text-gray-500 text-xs mb-1">Streams Live</div>
-                    <div class="px-2 py-1 rounded bg-green-500/10 text-green-400 text-sm font-semibold text-center"><?= number_format($streamsLive) ?></div>
-                </div>
-                <div>
-                    <div class="text-gray-500 text-xs mb-1">Streams Off</div>
-                    <div class="px-2 py-1 rounded bg-red-500/10 text-red-400 text-sm font-semibold text-center"><?= number_format($streamsOff) ?></div>
-                </div>
+        <!-- Stats -->
+        <div class="p-2.5 space-y-2">
+            <div class="grid grid-cols-4 gap-1.5 text-center">
+                <div class="px-1 py-1 rounded bg-blue-500/10"><div class="text-[10px] text-gray-500">Conn</div><div class="text-xs text-blue-400 font-semibold"><?= $connections ?></div></div>
+                <div class="px-1 py-1 rounded bg-gray-800"><div class="text-[10px] text-gray-500">Users</div><div class="text-xs text-white font-semibold"><?= $users ?></div></div>
+                <div class="px-1 py-1 rounded bg-green-500/10"><div class="text-[10px] text-gray-500">Live</div><div class="text-xs text-green-400 font-semibold"><?= $streamsLive ?></div></div>
+                <div class="px-1 py-1 rounded bg-red-500/10"><div class="text-[10px] text-gray-500">Off</div><div class="text-xs text-red-400 font-semibold"><?= $streamsOff ?></div></div>
             </div>
             
-            <!-- Bandwidth -->
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <div>
-                    <div class="text-gray-500 text-xs mb-1">Input</div>
-                    <div class="px-2 py-1 rounded bg-cyan-500/10 text-cyan-400 text-sm font-semibold"><?= formatBandwidth($bandwidthIn) ?></div>
-                </div>
-                <div>
-                    <div class="text-gray-500 text-xs mb-1">Output</div>
-                    <div class="px-2 py-1 rounded bg-orange-500/10 text-orange-400 text-sm font-semibold"><?= formatBandwidth($bandwidthOut) ?></div>
-                </div>
+            <div class="grid grid-cols-2 gap-1.5">
+                <div class="px-2 py-1 rounded bg-cyan-500/10"><span class="text-[10px] text-gray-500">IN</span> <span class="text-xs text-cyan-400 font-semibold"><?= formatBandwidth($bandwidthIn) ?></span></div>
+                <div class="px-2 py-1 rounded bg-orange-500/10"><span class="text-[10px] text-gray-500">OUT</span> <span class="text-xs text-orange-400 font-semibold"><?= formatBandwidth($bandwidthOut) ?></span></div>
             </div>
             
-            <!-- CPU & RAM Bars -->
-            <div class="space-y-2">
-                <div>
-                    <div class="flex justify-between text-xs mb-1">
-                        <span class="text-gray-500">CPU</span>
-                        <span class="text-<?= $cpu > 80 ? 'red' : ($cpu > 50 ? 'amber' : 'green') ?>-400"><?= $cpu ?>%</span>
-                    </div>
-                    <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
-                        <div class="h-full rounded-full transition-all duration-500 <?= $cpu > 80 ? 'bg-red-500' : ($cpu > 50 ? 'bg-amber-500' : 'bg-green-500') ?>" style="width: <?= $cpu ?>%"></div>
-                    </div>
-                </div>
-                <div>
-                    <div class="flex justify-between text-xs mb-1">
-                        <span class="text-gray-500">RAM</span>
-                        <span class="text-<?= $ram > 80 ? 'red' : ($ram > 50 ? 'amber' : 'green') ?>-400"><?= $ram ?>%</span>
-                    </div>
-                    <div class="h-2 bg-gray-800 rounded-full overflow-hidden">
-                        <div class="h-full rounded-full transition-all duration-500 <?= $ram > 80 ? 'bg-red-500' : ($ram > 50 ? 'bg-amber-500' : 'bg-green-500') ?>" style="width: <?= $ram ?>%"></div>
-                    </div>
-                </div>
+            <!-- CPU/RAM -->
+            <div class="space-y-1">
+                <div class="flex items-center gap-2"><span class="text-[10px] text-gray-500 w-7">CPU</span><div class="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden"><div class="h-full <?= $cpu > 80 ? 'bg-red-500' : ($cpu > 50 ? 'bg-amber-500' : 'bg-green-500') ?>" style="width:<?= $cpu ?>%"></div></div><span class="text-[10px] text-gray-400 w-7 text-right"><?= $cpu ?>%</span></div>
+                <div class="flex items-center gap-2"><span class="text-[10px] text-gray-500 w-7">RAM</span><div class="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden"><div class="h-full <?= $ram > 80 ? 'bg-red-500' : ($ram > 50 ? 'bg-amber-500' : 'bg-green-500') ?>" style="width:<?= $ram ?>%"></div></div><span class="text-[10px] text-gray-400 w-7 text-right"><?= $ram ?>%</span></div>
             </div>
             
-            <!-- Uptime -->
-            <div class="mt-3 pt-3 border-t border-gray-800/50 flex justify-between text-xs">
-                <span class="text-gray-500">Uptime</span>
-                <span class="text-gray-400"><?= $uptime ?></span>
-            </div>
+            <div class="flex justify-between text-[10px] pt-1 border-t border-gray-800/50"><span class="text-gray-500">Uptime</span><span class="text-gray-400"><?= $uptime ?></span></div>
         </div>
     </div>
     <?php endforeach; ?>
