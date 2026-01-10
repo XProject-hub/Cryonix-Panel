@@ -190,6 +190,15 @@ CREATE TABLE IF NOT EXISTS `servers` (
     `server_protocol` ENUM('http', 'https') NOT NULL DEFAULT 'http',
     `is_main` TINYINT(1) NOT NULL DEFAULT 0,
     `status` ENUM('online', 'offline', 'maintenance') NOT NULL DEFAULT 'online',
+    `current_connections` INT UNSIGNED NOT NULL DEFAULT 0,
+    `current_users` INT UNSIGNED NOT NULL DEFAULT 0,
+    `streams_live` INT UNSIGNED NOT NULL DEFAULT 0,
+    `streams_off` INT UNSIGNED NOT NULL DEFAULT 0,
+    `bandwidth_in` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    `bandwidth_out` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    `cpu_usage` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    `ram_usage` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    `uptime` VARCHAR(50) NULL,
     `last_check_at` DATETIME NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
