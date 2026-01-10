@@ -5,15 +5,20 @@
  * Copyright 2026 XProject-Hub
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
-if (file_exists(__DIR__ . '/../.env')) {
-    \Dotenv\Dotenv::createImmutable(dirname(__DIR__))->load();
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+
+// Load environment
+$envFile = __DIR__ . '/../.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos($line, '=') !== false && strpos($line, '#') !== 0) {
+            list($key, $value) = explode('=', $line, 2);
+            $_ENV[trim($key)] = trim($value);
+        }
+    }
 }
-
-define('CRYONIX_ROOT', dirname(__DIR__));
-require_once CRYONIX_ROOT . '/core/Database.php';
-
-use CryonixPanel\Core\Database;
 
 $username = $_GET['username'] ?? '';
 $password = $_GET['password'] ?? '';
@@ -26,14 +31,29 @@ if (empty($username) || empty($password)) {
 }
 
 try {
-    $db = Database::getInstance();
+    // Direct database connection
+    $host = $_ENV['DB_HOST'] ?? 'localhost';
+    $dbname = $_ENV['DB_NAME'] ?? 'cryonix_panel';
+    $dbuser = $_ENV['DB_USER'] ?? 'cryonix_panel';
+    $dbpass = $_ENV['DB_PASS'] ?? '';
+    
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $dbuser, $dbpass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     // Validate user
-    $user = $db->fetch("SELECT * FROM `lines` WHERE username = ? AND password = ? AND status = 'active'", [$username, $password]);
+    $stmt = $pdo->prepare("SELECT * FROM `lines` WHERE username = ? AND password = ?");
+    $stmt->execute([$username, $password]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$user) {
         header('HTTP/1.1 401 Unauthorized');
-        die('Invalid credentials or account expired');
+        die('Invalid credentials');
+    }
+    
+    // Check status
+    if ($user['status'] !== 'active') {
+        header('HTTP/1.1 403 Forbidden');
+        die('Account disabled');
     }
     
     // Check expiry
@@ -42,32 +62,17 @@ try {
         die('Account expired');
     }
     
-    // Get user's bouquets
-    $bouquetIds = json_decode($user['bouquet'] ?? '[]', true) ?: [];
-    
-    // Get all streams (or filtered by bouquet)
-    if (!empty($bouquetIds)) {
-        $placeholders = implode(',', array_fill(0, count($bouquetIds), '?'));
-        $streams = $db->fetchAll("
-            SELECT s.*, c.category_name 
-            FROM streams s 
-            LEFT JOIN stream_categories c ON s.category_id = c.id
-            LEFT JOIN bouquet_streams bs ON s.id = bs.stream_id
-            WHERE bs.bouquet_id IN ($placeholders) AND s.status = 'active'
-            ORDER BY c.category_name, s.sort_order
-        ", $bouquetIds) ?: [];
-    } else {
-        $streams = $db->fetchAll("
-            SELECT s.*, c.category_name 
-            FROM streams s 
-            LEFT JOIN stream_categories c ON s.category_id = c.id
-            WHERE s.status = 'active'
-            ORDER BY c.category_name, s.sort_order
-        ") ?: [];
-    }
+    // Get all streams
+    $stmt = $pdo->query("
+        SELECT s.*, c.category_name 
+        FROM streams s 
+        LEFT JOIN stream_categories c ON s.category_id = c.id
+        WHERE s.status = 'active'
+        ORDER BY c.category_name, s.sort_order
+    ");
+    $streams = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     
     $serverUrl = 'http://' . $_SERVER['HTTP_HOST'];
-    $serverPort = $_SERVER['SERVER_PORT'] ?? 8080;
     
     // Generate playlist based on type
     switch ($type) {
@@ -80,9 +85,13 @@ try {
             
             foreach ($streams as $stream) {
                 $ext = ($output === 'hls') ? 'm3u8' : 'ts';
-                $streamUrl = "{$serverUrl}:{$serverPort}/live/{$username}/{$password}/{$stream['id']}.{$ext}";
+                $streamUrl = "{$serverUrl}/live/{$username}/{$password}/{$stream['id']}.{$ext}";
+                $epgId = $stream['epg_channel_id'] ?? '';
+                $name = $stream['stream_display_name'] ?? 'Channel';
+                $logo = $stream['stream_icon'] ?? '';
+                $group = $stream['category_name'] ?? 'Uncategorized';
                 
-                echo "#EXTINF:-1 tvg-id=\"{$stream['epg_channel_id']}\" tvg-name=\"{$stream['stream_display_name']}\" tvg-logo=\"{$stream['stream_icon']}\" group-title=\"{$stream['category_name']}\",{$stream['stream_display_name']}\n";
+                echo "#EXTINF:-1 tvg-id=\"{$epgId}\" tvg-name=\"{$name}\" tvg-logo=\"{$logo}\" group-title=\"{$group}\",{$name}\n";
                 echo "{$streamUrl}\n";
             }
             break;
@@ -96,11 +105,11 @@ try {
             
             foreach ($streams as $stream) {
                 $ext = ($output === 'hls') ? 'm3u8' : 'ts';
-                $streamUrl = "{$serverUrl}:{$serverPort}/live/{$username}/{$password}/{$stream['id']}.{$ext}";
-                $serviceName = str_replace([':', ' '], ['%3a', '%20'], $stream['stream_display_name']);
+                $streamUrl = "{$serverUrl}/live/{$username}/{$password}/{$stream['id']}.{$ext}";
+                $serviceName = str_replace([':', ' '], ['%3a', '%20'], $stream['stream_display_name'] ?? 'Channel');
                 
                 echo "#SERVICE 4097:0:1:0:0:0:0:0:0:0:{$streamUrl}:{$serviceName}\n";
-                echo "#DESCRIPTION {$stream['stream_display_name']}\n";
+                echo "#DESCRIPTION " . ($stream['stream_display_name'] ?? 'Channel') . "\n";
             }
             break;
             
@@ -117,8 +126,10 @@ try {
             ]);
     }
     
-} catch (\Exception $e) {
+} catch (PDOException $e) {
+    header('HTTP/1.1 500 Internal Server Error');
+    die('Database error: ' . $e->getMessage());
+} catch (Exception $e) {
     header('HTTP/1.1 500 Internal Server Error');
     die('Error: ' . $e->getMessage());
 }
-
