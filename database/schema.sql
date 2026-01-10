@@ -38,19 +38,32 @@ CREATE TABLE IF NOT EXISTS `lines` (
     `is_mag` TINYINT(1) NOT NULL DEFAULT 0,
     `is_e2` TINYINT(1) NOT NULL DEFAULT 0,
     `is_isplock` TINYINT(1) NOT NULL DEFAULT 0,
+    `is_restreamer` TINYINT(1) NOT NULL DEFAULT 0,
+    `forced_country` VARCHAR(10) NULL,
     `allowed_ips` TEXT NULL,
     `allowed_ua` TEXT NULL,
+    `allowed_outputs` JSON NULL DEFAULT ('["hls","ts","rtmp"]'),
     `exp_date` DATETIME NULL,
     `force_server_id` INT UNSIGNED NULL,
     `bouquet` TEXT NULL COMMENT 'JSON array of bouquet IDs',
     `admin_notes` TEXT NULL,
     `reseller_notes` TEXT NULL,
+    `is_banned` TINYINT(1) NOT NULL DEFAULT 0,
     `status` ENUM('active', 'expired', 'banned', 'disabled') NOT NULL DEFAULT 'active',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (`owner_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
     INDEX `idx_lines_status` (`status`),
     INDEX `idx_lines_exp` (`exp_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Line-Bouquet relationship
+CREATE TABLE IF NOT EXISTS `line_bouquets` (
+    `line_id` INT UNSIGNED NOT NULL,
+    `bouquet_id` INT UNSIGNED NOT NULL,
+    PRIMARY KEY (`line_id`, `bouquet_id`),
+    FOREIGN KEY (`line_id`) REFERENCES `lines`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`bouquet_id`) REFERENCES `bouquets`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -280,28 +293,11 @@ CREATE TABLE IF NOT EXISTS `license_info` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
--- Initial Data (2026)
+-- Initial Data (2026) - Only essential settings
 -- ============================================
 
--- Default server
-INSERT INTO `servers` (`server_name`, `server_ip`, `http_port`, `is_main`, `status`, `created_at`) VALUES
-('Main Server', '127.0.0.1', 80, 1, 'online', '2026-01-01 00:00:00');
-
--- Default bouquet (ignore if exists)
-INSERT IGNORE INTO `bouquets` (`bouquet_name`, `sort_order`, `created_at`) VALUES
-('All Channels', 1, '2026-01-01 00:00:00');
-
--- Default categories (ignore if exists)
-INSERT IGNORE INTO `stream_categories` (`category_type`, `category_name`, `sort_order`, `created_at`) VALUES
-('live', 'General', 1, '2026-01-01 00:00:00'),
-('live', 'Sports', 2, '2026-01-01 00:00:00'),
-('live', 'News', 3, '2026-01-01 00:00:00'),
-('live', 'Entertainment', 4, '2026-01-01 00:00:00'),
-('movie', 'Action', 1, '2026-01-01 00:00:00'),
-('movie', 'Comedy', 2, '2026-01-01 00:00:00'),
-('movie', 'Drama', 3, '2026-01-01 00:00:00'),
-('series', 'Drama', 1, '2026-01-01 00:00:00'),
-('series', 'Comedy', 2, '2026-01-01 00:00:00');
+-- NOTE: No default categories, bouquets, or servers are inserted
+-- Users will add their own content
 
 -- Default settings (update if exists)
 INSERT INTO `settings` (`key`, `value`, `type`) VALUES
