@@ -261,14 +261,15 @@ ob_start();
         <div id="playlistUrlContainer" class="hidden">
             <label class="block text-xs text-gray-400 mb-1">Playlist URL:</label>
             <div class="flex gap-2">
-                <input type="text" id="playlistUrl" readonly class="flex-1 px-3 py-2 rounded bg-dark-900 border border-gray-800 text-cryo-400 text-xs font-mono">
-                <button onclick="copyPlaylistUrl()" class="px-3 py-2 rounded bg-gray-700 text-white text-xs hover:bg-gray-600" title="Copy">
+                <input type="text" id="playlistUrl" readonly class="flex-1 px-3 py-2 rounded bg-dark-900 border border-gray-800 text-cryo-400 text-xs font-mono" onclick="this.select()">
+                <button type="button" onclick="copyPlaylistUrl()" class="px-3 py-2 rounded bg-gray-700 text-white text-xs hover:bg-gray-600 flex items-center justify-center" title="Copy">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
                 </button>
-                <a id="playlistDownloadLink" href="#" class="px-3 py-2 rounded bg-cryo-500 text-white text-xs hover:bg-cryo-600" title="Download">
+                <a id="playlistDownloadLink" href="#" target="_blank" class="px-3 py-2 rounded bg-cryo-500 text-white text-xs hover:bg-cryo-600 flex items-center justify-center" title="Download">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 </a>
             </div>
+            <p id="copySuccess" class="hidden text-green-400 text-xs mt-2">Copied to clipboard!</p>
         </div>
     </div>
 </div>
@@ -328,10 +329,36 @@ function updatePlaylistUrl() {
 }
 
 function copyPlaylistUrl() {
-    const url = document.getElementById('playlistUrl').value;
-    navigator.clipboard.writeText(url).then(() => {
-        alert('URL copied to clipboard!');
-    });
+    const urlInput = document.getElementById('playlistUrl');
+    const url = urlInput.value;
+    
+    // Try modern clipboard API first
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(url).then(() => {
+            showCopySuccess();
+        }).catch(() => {
+            fallbackCopy(urlInput);
+        });
+    } else {
+        fallbackCopy(urlInput);
+    }
+}
+
+function fallbackCopy(input) {
+    input.select();
+    input.setSelectionRange(0, 99999);
+    try {
+        document.execCommand('copy');
+        showCopySuccess();
+    } catch (err) {
+        alert('Copy failed. Please select and copy manually.');
+    }
+}
+
+function showCopySuccess() {
+    const msg = document.getElementById('copySuccess');
+    msg.classList.remove('hidden');
+    setTimeout(() => msg.classList.add('hidden'), 2000);
 }
 
 function userAction(userId, action) {
