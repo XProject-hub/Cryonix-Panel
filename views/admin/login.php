@@ -1,3 +1,7 @@
+<?php
+// Get admin path
+$adminPath = defined('ADMIN_PATH') ? ADMIN_PATH : '/admin';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -42,7 +46,7 @@
             </div>
             <?php endif; ?>
             
-            <form action="/admin/login" method="POST" class="space-y-4">
+            <form action="<?= $adminPath ?>/login" method="POST" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-300 mb-2">Username</label>
                     <input type="text" name="username" required autofocus class="w-full px-4 py-3 rounded-lg bg-dark-900 border border-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-cryo-500/50">
