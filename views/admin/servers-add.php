@@ -99,7 +99,7 @@ ob_start();
 <div class="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"><?= htmlspecialchars($error) ?></div>
 <?php endif; ?>
 
-<form method="POST">
+<form method="POST" class="max-w-4xl mx-auto">
     <!-- Tabs -->
     <div class="flex gap-1 mb-4">
         <button type="button" class="tab-btn active px-5 py-2 rounded-lg bg-dark-800 text-gray-400 text-xs font-medium" data-tab="details">DETAILS</button>

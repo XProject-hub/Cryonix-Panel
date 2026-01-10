@@ -102,18 +102,16 @@ ob_start();
 .tab-content.active { display: block; }
 </style>
 
-<div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold text-white"><?= $pageTitle ?></h1>
-    <div class="flex gap-2">
-        <a href="<?= ADMIN_PATH ?>/users" class="px-4 py-2 rounded-lg bg-gray-700 text-white text-sm hover:bg-gray-600 transition">← Back to Users</a>
-    </div>
+<div class="max-w-4xl mx-auto flex items-center justify-between mb-6">
+    <h1 class="text-xl font-bold text-white"><?= $pageTitle ?></h1>
+    <a href="<?= ADMIN_PATH ?>/users" class="px-4 py-2 rounded-lg bg-dark-800 text-gray-400 hover:text-white text-xs transition">← Back to Users</a>
 </div>
 
 <?php if ($error): ?>
 <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400"><?= htmlspecialchars($error) ?></div>
 <?php endif; ?>
 
-<form method="POST">
+<form method="POST" class="max-w-4xl mx-auto">
     <!-- Tabs -->
     <div class="flex gap-1 mb-6">
         <button type="button" class="tab-btn active px-5 py-2 rounded-lg bg-gray-800 text-gray-300 text-sm font-medium flex items-center gap-2" data-tab="details">

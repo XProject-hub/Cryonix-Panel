@@ -70,19 +70,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ob_start();
 ?>
 
-<div class="mb-8">
-    <a href="<?= ADMIN_PATH ?>/streams" class="text-gray-400 hover:text-cyan-400 transition mb-2 inline-flex items-center gap-1">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        Back to Channels
-    </a>
-    <h1 class="text-3xl font-bold text-white"><?= $pageTitle ?></h1>
+<div class="max-w-2xl mx-auto mb-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-xl font-bold text-white"><?= $pageTitle ?></h1>
+        <a href="<?= ADMIN_PATH ?>/streams" class="px-4 py-2 rounded-lg bg-dark-800 text-gray-400 hover:text-white text-xs transition">← Back to Channels</a>
+    </div>
 </div>
 
 <?php if ($error): ?>
 <div class="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400"><?= htmlspecialchars($error) ?></div>
 <?php endif; ?>
 
-<form method="POST" class="max-w-2xl">
+<form method="POST" class="max-w-2xl mx-auto">
     <div class="glass rounded-xl p-6 border border-gray-800/50 space-y-6">
         <div>
             <label class="block text-sm font-medium text-gray-300 mb-2">Channel Name *</label>

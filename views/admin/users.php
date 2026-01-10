@@ -298,7 +298,7 @@ function updatePlaylistUrl() {
     
     document.getElementById('playlistUrlContainer').classList.remove('hidden');
     
-    let url = serverUrl + ':8080/get.php?username=' + currentUser.username + '&password=' + currentUser.password;
+    let url = serverUrl + '/get.php?username=' + currentUser.username + '&password=' + currentUser.password;
     
     switch(format) {
         case 'e2_16_hls':

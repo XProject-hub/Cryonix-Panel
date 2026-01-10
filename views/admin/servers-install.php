@@ -64,11 +64,14 @@ ob_start();
 .form-input:focus { outline: none; border-color: #0ea5e9; }
 </style>
 
-<div class="flex items-center justify-between mb-6">
-    <h1 class="text-xl font-bold text-white">Load Balancer Installation</h1>
-    <a href="<?= ADMIN_PATH ?>/servers" class="px-4 py-2 rounded-lg bg-dark-800 text-gray-400 hover:text-white text-xs transition">← Back to Servers</a>
+<div class="max-w-2xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-xl font-bold text-white">Load Balancer Installation</h1>
+        <a href="<?= ADMIN_PATH ?>/servers" class="px-4 py-2 rounded-lg bg-dark-800 text-gray-400 hover:text-white text-xs transition">← Back to Servers</a>
+    </div>
 </div>
 
+<div class="max-w-2xl mx-auto">
 <?php if ($error): ?>
 <div class="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"><?= htmlspecialchars($error) ?></div>
 <?php endif; ?>
@@ -76,8 +79,9 @@ ob_start();
 <?php if ($success): ?>
 <div class="mb-4 p-3 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-sm"><?= htmlspecialchars($success) ?></div>
 <?php endif; ?>
+</div>
 
-<form method="POST" class="max-w-2xl">
+<form method="POST" class="max-w-2xl mx-auto">
     <div class="glass rounded-xl border border-gray-800/50 overflow-hidden">
         <div class="bg-gradient-to-r from-cryo-500 to-blue-500 px-5 py-3">
             <span class="text-white text-sm font-medium">DETAILS</span>

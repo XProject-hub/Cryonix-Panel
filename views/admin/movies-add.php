@@ -17,7 +17,7 @@ ob_start();
     <a href="<?= ADMIN_PATH ?>/movies" class="text-gray-400 hover:text-cyan-400">← Back to Movies</a>
     <h1 class="text-3xl font-bold text-white"><?= $pageTitle ?></h1>
 </div>
-<form method="POST" class="max-w-2xl glass rounded-xl p-6 border border-gray-800/50 space-y-6">
+<form method="POST" class="max-w-2xl mx-auto glass rounded-xl p-6 border border-gray-800/50 space-y-6">
     <div><label class="block text-sm text-gray-300 mb-2">Movie Name *</label><input type="text" name="name" value="<?= htmlspecialchars($movie['stream_display_name'] ?? '') ?>" required class="w-full px-4 py-2.5 rounded-lg bg-dark-900 border border-gray-800 text-white"></div>
     <div><label class="block text-sm text-gray-300 mb-2">Source URL *</label><input type="url" name="source" value="<?= htmlspecialchars($movie['stream_source'] ?? '') ?>" required class="w-full px-4 py-2.5 rounded-lg bg-dark-900 border border-gray-800 text-white"></div>
     <div><label class="block text-sm text-gray-300 mb-2">Category</label><select name="category_id" class="w-full px-4 py-2.5 rounded-lg bg-dark-900 border border-gray-800 text-white"><option value="">Uncategorized</option><?php foreach ($categories as $c): ?><option value="<?= $c['id'] ?>" <?= ($movie['category_id'] ?? '') == $c['id'] ? 'selected' : '' ?>><?= htmlspecialchars($c['category_name']) ?></option><?php endforeach; ?></select></div>
