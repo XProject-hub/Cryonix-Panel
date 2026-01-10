@@ -32,7 +32,23 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
         .glass { backdrop-filter: blur(12px); background: rgba(15, 17, 21, 0.95); }
         .nav-item { position: relative; }
         .nav-item:hover .dropdown { display: block; }
-        .dropdown { display: none; position: absolute; top: 100%; left: 0; min-width: 180px; z-index: 50; }
+        .dropdown { 
+            display: none; 
+            position: absolute; 
+            top: 100%; 
+            left: 0; 
+            min-width: 180px; 
+            z-index: 50;
+            padding-top: 4px; /* Creates invisible bridge for mouse */
+        }
+        .dropdown::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 0;
+            right: 0;
+            height: 14px; /* Invisible hover bridge */
+        }
         .nav-link.active { background: rgba(14, 165, 233, 0.2); color: #38bdf8; }
     </style>
 </head>
@@ -62,9 +78,11 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
                     <button class="nav-link px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1 <?= str_starts_with($currentRoute, '/servers') ? 'active' : 'text-gray-400 hover:text-white hover:bg-dark-800' ?>">
                         SERVERS <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div class="dropdown glass rounded-lg shadow-xl border border-gray-800/50 py-1 mt-1">
-                        <a href="<?= $adminPath ?>/servers" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">All Servers</a>
-                        <a href="<?= $adminPath ?>/servers/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add Load Balancer</a>
+                    <div class="dropdown">
+                        <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1">
+                            <a href="<?= $adminPath ?>/servers" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">All Servers</a>
+                            <a href="<?= $adminPath ?>/servers/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add Load Balancer</a>
+                        </div>
                     </div>
                 </div>
                 
@@ -73,9 +91,11 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
                     <button class="nav-link px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1 text-gray-400 hover:text-white hover:bg-dark-800">
                         MANAGEMENT <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div class="dropdown glass rounded-lg shadow-xl border border-gray-800/50 py-1 mt-1">
-                        <a href="<?= $adminPath ?>/categories" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Categories</a>
-                        <a href="<?= $adminPath ?>/categories/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add Category</a>
+                    <div class="dropdown">
+                        <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1">
+                            <a href="<?= $adminPath ?>/categories" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Categories</a>
+                            <a href="<?= $adminPath ?>/categories/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add Category</a>
+                        </div>
                     </div>
                 </div>
                 
@@ -84,9 +104,11 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
                     <button class="nav-link px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1 text-gray-400 hover:text-white hover:bg-dark-800">
                         RESELLERS <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div class="dropdown glass rounded-lg shadow-xl border border-gray-800/50 py-1 mt-1">
-                        <a href="<?= $adminPath ?>/resellers" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">All Resellers</a>
-                        <a href="<?= $adminPath ?>/resellers/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add Reseller</a>
+                    <div class="dropdown">
+                        <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1">
+                            <a href="<?= $adminPath ?>/resellers" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">All Resellers</a>
+                            <a href="<?= $adminPath ?>/resellers/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add Reseller</a>
+                        </div>
                     </div>
                 </div>
                 
@@ -95,10 +117,12 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
                     <button class="nav-link px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1 <?= str_starts_with($currentRoute, '/users') ? 'active' : 'text-gray-400 hover:text-white hover:bg-dark-800' ?>">
                         USERS <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div class="dropdown glass rounded-lg shadow-xl border border-gray-800/50 py-1 mt-1">
-                        <a href="<?= $adminPath ?>/users" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">All Users</a>
-                        <a href="<?= $adminPath ?>/users/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add User</a>
-                        <a href="<?= $adminPath ?>/users?filter=online" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Online Users</a>
+                    <div class="dropdown">
+                        <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1">
+                            <a href="<?= $adminPath ?>/users" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">All Users</a>
+                            <a href="<?= $adminPath ?>/users/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add User</a>
+                            <a href="<?= $adminPath ?>/users?filter=online" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Online Users</a>
+                        </div>
                     </div>
                 </div>
                 
@@ -107,12 +131,14 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
                     <button class="nav-link px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1 <?= str_starts_with($currentRoute, '/streams') || str_starts_with($currentRoute, '/movies') || str_starts_with($currentRoute, '/series') ? 'active' : 'text-gray-400 hover:text-white hover:bg-dark-800' ?>">
                         CONTENT <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div class="dropdown glass rounded-lg shadow-xl border border-gray-800/50 py-1 mt-1">
-                        <a href="<?= $adminPath ?>/streams" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Live Channels</a>
-                        <a href="<?= $adminPath ?>/streams/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add Channel</a>
-                        <div class="border-t border-gray-800/50 my-1"></div>
-                        <a href="<?= $adminPath ?>/movies" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Movies (VOD)</a>
-                        <a href="<?= $adminPath ?>/series" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Series</a>
+                    <div class="dropdown">
+                        <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1">
+                            <a href="<?= $adminPath ?>/streams" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Live Channels</a>
+                            <a href="<?= $adminPath ?>/streams/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add Channel</a>
+                            <div class="border-t border-gray-800/50 my-1"></div>
+                            <a href="<?= $adminPath ?>/movies" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Movies (VOD)</a>
+                            <a href="<?= $adminPath ?>/series" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Series</a>
+                        </div>
                     </div>
                 </div>
                 
@@ -121,9 +147,11 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
                     <button class="nav-link px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1 <?= str_starts_with($currentRoute, '/bouquets') ? 'active' : 'text-gray-400 hover:text-white hover:bg-dark-800' ?>">
                         BOUQUETS <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div class="dropdown glass rounded-lg shadow-xl border border-gray-800/50 py-1 mt-1">
-                        <a href="<?= $adminPath ?>/bouquets" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">All Bouquets</a>
-                        <a href="<?= $adminPath ?>/bouquets/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add Bouquet</a>
+                    <div class="dropdown">
+                        <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1">
+                            <a href="<?= $adminPath ?>/bouquets" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">All Bouquets</a>
+                            <a href="<?= $adminPath ?>/bouquets/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add Bouquet</a>
+                        </div>
                     </div>
                 </div>
                 
@@ -132,9 +160,11 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
                     <button class="nav-link px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1 text-gray-400 hover:text-white hover:bg-dark-800">
                         APPS IPTV <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div class="dropdown glass rounded-lg shadow-xl border border-gray-800/50 py-1 mt-1">
-                        <a href="<?= $adminPath ?>/apps" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Manage Apps</a>
-                        <a href="<?= $adminPath ?>/epg" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">EPG Manager</a>
+                    <div class="dropdown">
+                        <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1">
+                            <a href="<?= $adminPath ?>/apps" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Manage Apps</a>
+                            <a href="<?= $adminPath ?>/epg" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">EPG Manager</a>
+                        </div>
                     </div>
                 </div>
             </nav>
@@ -154,10 +184,12 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
                         <span class="text-xs text-gray-300"><?= htmlspecialchars($_SESSION['username'] ?? 'Admin') ?></span>
                         <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
-                    <div class="dropdown glass rounded-lg shadow-xl border border-gray-800/50 py-1 mt-1 right-0 left-auto">
-                        <a href="<?= $adminPath ?>/license" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">License</a>
-                        <div class="border-t border-gray-800/50 my-1"></div>
-                        <a href="<?= $adminPath ?>/logout" class="block px-3 py-1.5 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10">Logout</a>
+                    <div class="dropdown" style="left:auto;right:0;">
+                        <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1">
+                            <a href="<?= $adminPath ?>/license" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">License</a>
+                            <div class="border-t border-gray-800/50 my-1"></div>
+                            <a href="<?= $adminPath ?>/logout" class="block px-3 py-1.5 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10">Logout</a>
+                        </div>
                     </div>
                 </div>
             </div>
