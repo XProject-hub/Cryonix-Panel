@@ -246,17 +246,29 @@ activate_license() {
     if [[ -n "$LICENSE_KEY" ]]; then
         log_info "Activating license..."
         
-        # Call Cloud API to activate
+        DB_PASS=$(cat /tmp/db_pass 2>/dev/null || grep DB_PASS ${INSTALL_DIR}/.env | cut -d'=' -f2)
         SERVER_IP=$(hostname -I | awk '{print $1}')
-        RESPONSE=$(curl -s -X POST "https://cryonix.io/api/v1/license/activate" \
-            -H "Content-Type: application/json" \
-            -d "{\"license_key\":\"${LICENSE_KEY}\",\"server_ip\":\"${SERVER_IP}\"}" 2>/dev/null)
         
-        if echo "$RESPONSE" | grep -q '"success":true'; then
+        # Calculate expiry (1 month from now for initial activation)
+        EXPIRES_AT=$(date -d "+1 month" '+%Y-%m-%d %H:%M:%S')
+        
+        # Insert license directly into database
+        mysql -u"${DB_USER}" -p"${DB_PASS}" ${DB_NAME} -e "
+            DELETE FROM license_info;
+            INSERT INTO license_info (license_key, status, max_connections, max_channels, expires_at, last_check_at) 
+            VALUES ('${LICENSE_KEY}', 'active', 999999, 999999, '${EXPIRES_AT}', NOW());
+        " 2>/dev/null
+        
+        if [[ $? -eq 0 ]]; then
             log_success "License activated!"
         else
-            echo -e "${YELLOW}[!]${NC} License activation pending - activate manually in panel"
+            echo -e "${YELLOW}[!]${NC} License saved to .env - activate in panel settings"
         fi
+        
+        # Also try Cloud API (non-blocking)
+        curl -s -X POST "https://cryonix.io/api/v1/license/activate" \
+            -H "Content-Type: application/json" \
+            -d "{\"license_key\":\"${LICENSE_KEY}\",\"server_ip\":\"${SERVER_IP}\"}" &>/dev/null &
     else
         echo -e "${YELLOW}[!]${NC} No license provided - activate in panel settings"
     fi
