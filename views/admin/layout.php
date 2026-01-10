@@ -40,7 +40,7 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
             left: 0; 
             min-width: 180px; 
             z-index: 50;
-            padding-top: 4px; /* Creates invisible bridge for mouse */
+            padding-top: 4px;
         }
         .dropdown::before {
             content: '';
@@ -48,9 +48,13 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
             top: -10px;
             left: 0;
             right: 0;
-            height: 14px; /* Invisible hover bridge */
+            height: 14px;
         }
         .nav-link.active { background: rgba(14, 165, 233, 0.2); color: #38bdf8; }
+        /* Nested submenu */
+        .submenu-item .submenu { display: none; position: absolute; left: 100%; top: 0; margin-left: 2px; }
+        .submenu-item:hover .submenu { display: block; }
+        .submenu::before { content: ''; position: absolute; top: 0; left: -10px; width: 10px; height: 100%; }
     </style>
 </head>
 <body class="bg-dark-950 text-gray-100 font-sans min-h-screen">
@@ -104,9 +108,73 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
                         MANAGEMENT <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div class="dropdown">
-                        <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1">
-                            <a href="<?= $adminPath ?>/categories" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Categories</a>
-                            <a href="<?= $adminPath ?>/categories/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add Category</a>
+                        <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1 min-w-[160px]">
+                            <!-- Service Setup -->
+                            <div class="submenu-item relative">
+                                <a href="#" class="flex items-center justify-between px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                    <span>+ Service Setup</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                                <div class="submenu glass rounded-lg shadow-xl border border-gray-800/50 py-1 min-w-[180px]">
+                                    <a href="<?= $adminPath ?>/packages" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Packages</a>
+                                    <a href="<?= $adminPath ?>/categories" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Categories</a>
+                                    <a href="<?= $adminPath ?>/groups" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Groups</a>
+                                    <a href="<?= $adminPath ?>/epg" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">EPG's</a>
+                                    <a href="<?= $adminPath ?>/channel-order" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Channel Order</a>
+                                    <a href="<?= $adminPath ?>/folder-watch" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Folder Watch</a>
+                                    <a href="<?= $adminPath ?>/subresellers" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Subresellers</a>
+                                    <a href="<?= $adminPath ?>/transcode" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Transcode Profiles</a>
+                                    <a href="<?= $adminPath ?>/provider-check" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Provider Con Check</a>
+                                </div>
+                            </div>
+                            <!-- Security -->
+                            <div class="submenu-item relative">
+                                <a href="#" class="flex items-center justify-between px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                    <span>+ Security</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                                <div class="submenu glass rounded-lg shadow-xl border border-gray-800/50 py-1 min-w-[180px]">
+                                    <a href="<?= $adminPath ?>/security/flood" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Logins Flood</a>
+                                    <a href="<?= $adminPath ?>/security/center" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Security Center</a>
+                                    <a href="<?= $adminPath ?>/security/blocked-ips" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Blocked IP's</a>
+                                    <a href="<?= $adminPath ?>/security/blocked-isps" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Blocked ISP's</a>
+                                    <a href="<?= $adminPath ?>/security/rtmp-ips" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">RTMP IP's</a>
+                                    <a href="<?= $adminPath ?>/security/blocked-ua" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Blocked User Agents</a>
+                                </div>
+                            </div>
+                            <!-- Tools -->
+                            <div class="submenu-item relative">
+                                <a href="#" class="flex items-center justify-between px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                    <span>+ Tools</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                                <div class="submenu glass rounded-lg shadow-xl border border-gray-800/50 py-1 min-w-[180px]">
+                                    <a href="<?= $adminPath ?>/tools/mass-delete" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Mass Delete</a>
+                                    <a href="<?= $adminPath ?>/tools/fingerprint" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Fingerprint</a>
+                                    <a href="<?= $adminPath ?>/tools/stream" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Stream Tools</a>
+                                    <a href="<?= $adminPath ?>/tools/ip-change" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">IP Change</a>
+                                    <a href="<?= $adminPath ?>/tools/dns-covers" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">DNS Covers Change</a>
+                                    <a href="<?= $adminPath ?>/tools/quick" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Quick Tools</a>
+                                </div>
+                            </div>
+                            <!-- Logs -->
+                            <div class="submenu-item relative">
+                                <a href="#" class="flex items-center justify-between px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                    <span>+ Logs</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                                <div class="submenu glass rounded-lg shadow-xl border border-gray-800/50 py-1 min-w-[180px]">
+                                    <a href="<?= $adminPath ?>/logs/reseller" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Reseller Logs</a>
+                                    <a href="<?= $adminPath ?>/logs/credit" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Credit Logs</a>
+                                    <a href="<?= $adminPath ?>/logs/login" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Login Logs</a>
+                                    <a href="<?= $adminPath ?>/logs/client" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Client Logs</a>
+                                    <a href="<?= $adminPath ?>/logs/stream" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Stream Logs</a>
+                                    <a href="<?= $adminPath ?>/logs/ip-usage" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Line IP Usage</a>
+                                    <a href="<?= $adminPath ?>/logs/panel" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Panel Logs</a>
+                                    <a href="<?= $adminPath ?>/logs/mag-events" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">MAG Event Logs</a>
+                                    <a href="<?= $adminPath ?>/logs/mag-claims" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Mag Claims</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -126,14 +194,47 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
                 
                 <!-- Users -->
                 <div class="nav-item">
-                    <button class="nav-link px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1 <?= str_starts_with($currentRoute, '/users') ? 'active' : 'text-gray-400 hover:text-white hover:bg-dark-800' ?>">
+                    <button class="nav-link px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1 <?= str_starts_with($currentRoute, '/users') || str_starts_with($currentRoute, '/mag') || str_starts_with($currentRoute, '/enigma') ? 'active' : 'text-gray-400 hover:text-white hover:bg-dark-800' ?>">
                         USERS <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div class="dropdown">
-                        <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1">
-                            <a href="<?= $adminPath ?>/users" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">All Users</a>
-                            <a href="<?= $adminPath ?>/users/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add User</a>
-                            <a href="<?= $adminPath ?>/users?filter=online" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Online Users</a>
+                        <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1 min-w-[160px]">
+                            <!-- User Lines -->
+                            <div class="submenu-item relative">
+                                <a href="#" class="flex items-center justify-between px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                    <span>+ User Lines</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                                <div class="submenu glass rounded-lg shadow-xl border border-gray-800/50 py-1 min-w-[160px]">
+                                    <a href="<?= $adminPath ?>/users/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add User</a>
+                                    <a href="<?= $adminPath ?>/users" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Manage Users</a>
+                                </div>
+                            </div>
+                            <!-- MAG Devices -->
+                            <div class="submenu-item relative">
+                                <a href="#" class="flex items-center justify-between px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                    <span>+ MAG Devices</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                                <div class="submenu glass rounded-lg shadow-xl border border-gray-800/50 py-1 min-w-[180px]">
+                                    <a href="<?= $adminPath ?>/mag/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add MAG Device</a>
+                                    <a href="<?= $adminPath ?>/mag" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Manage MAG Devices</a>
+                                    <a href="<?= $adminPath ?>/mag/link" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Link MAG User</a>
+                                </div>
+                            </div>
+                            <!-- Enigma Devices -->
+                            <div class="submenu-item relative">
+                                <a href="#" class="flex items-center justify-between px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                    <span>+ Enigma Devices</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                                <div class="submenu glass rounded-lg shadow-xl border border-gray-800/50 py-1 min-w-[180px]">
+                                    <a href="<?= $adminPath ?>/enigma/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add Enigma Device</a>
+                                    <a href="<?= $adminPath ?>/enigma" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Manage Enigma Devices</a>
+                                    <a href="<?= $adminPath ?>/enigma/link" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Link Enigma User</a>
+                                </div>
+                            </div>
+                            <a href="<?= $adminPath ?>/users/mass-edit" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Mass Edit Users</a>
                         </div>
                     </div>
                 </div>

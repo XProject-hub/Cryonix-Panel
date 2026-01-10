@@ -33,7 +33,9 @@ CREATE TABLE IF NOT EXISTS `lines` (
     `username` VARCHAR(100) NOT NULL UNIQUE,
     `password` VARCHAR(100) NOT NULL,
     `owner_id` INT UNSIGNED NULL COMMENT 'Reseller who created this',
+    `reseller` VARCHAR(100) NULL COMMENT 'Reseller name',
     `max_connections` INT UNSIGNED NOT NULL DEFAULT 1,
+    `current_connections` INT UNSIGNED NOT NULL DEFAULT 0,
     `is_trial` TINYINT(1) NOT NULL DEFAULT 0,
     `is_mag` TINYINT(1) NOT NULL DEFAULT 0,
     `is_e2` TINYINT(1) NOT NULL DEFAULT 0,
@@ -54,7 +56,8 @@ CREATE TABLE IF NOT EXISTS `lines` (
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (`owner_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
     INDEX `idx_lines_status` (`status`),
-    INDEX `idx_lines_exp` (`exp_date`)
+    INDEX `idx_lines_exp` (`exp_date`),
+    INDEX `idx_lines_reseller` (`reseller`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Line-Bouquet relationship
@@ -307,6 +310,153 @@ CREATE TABLE IF NOT EXISTS `license_info` (
     `expires_at` DATE NULL,
     `last_check_at` DATETIME NULL,
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- MAG Devices
+-- ============================================
+CREATE TABLE IF NOT EXISTS `mag_devices` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `mac` VARCHAR(17) NOT NULL UNIQUE,
+    `username` VARCHAR(100) NULL,
+    `line_id` INT UNSIGNED NULL,
+    `status` ENUM('active', 'disabled', 'expired') NOT NULL DEFAULT 'active',
+    `exp_date` DATETIME NULL,
+    `portal_url` VARCHAR(512) NULL,
+    `stb_type` VARCHAR(50) NULL DEFAULT 'MAG250',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_mag_mac` (`mac`),
+    INDEX `idx_mag_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- Enigma Devices
+-- ============================================
+CREATE TABLE IF NOT EXISTS `enigma_devices` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `device_id` VARCHAR(255) NOT NULL UNIQUE,
+    `username` VARCHAR(100) NULL,
+    `line_id` INT UNSIGNED NULL,
+    `status` ENUM('active', 'disabled', 'expired') NOT NULL DEFAULT 'active',
+    `exp_date` DATETIME NULL,
+    `device_type` VARCHAR(50) NULL DEFAULT 'Enigma2',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX `idx_enigma_device` (`device_id`),
+    INDEX `idx_enigma_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- Packages (for resellers)
+-- ============================================
+CREATE TABLE IF NOT EXISTS `packages` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(100) NOT NULL,
+    `credits` INT UNSIGNED NOT NULL DEFAULT 0,
+    `price` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    `is_trial` TINYINT(1) NOT NULL DEFAULT 0,
+    `trial_duration` INT UNSIGNED NOT NULL DEFAULT 24 COMMENT 'Hours',
+    `official_duration` INT UNSIGNED NOT NULL DEFAULT 30 COMMENT 'Days',
+    `max_connections` INT UNSIGNED NOT NULL DEFAULT 1,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- Groups
+-- ============================================
+CREATE TABLE IF NOT EXISTS `groups` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(100) NOT NULL,
+    `is_admin` TINYINT(1) NOT NULL DEFAULT 0,
+    `permissions` JSON NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- EPG Sources
+-- ============================================
+CREATE TABLE IF NOT EXISTS `epg_sources` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(100) NOT NULL,
+    `url` VARCHAR(512) NOT NULL,
+    `status` ENUM('active', 'inactive', 'error') NOT NULL DEFAULT 'active',
+    `last_update` DATETIME NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- Blocked IPs
+-- ============================================
+CREATE TABLE IF NOT EXISTS `blocked_ips` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `ip` VARCHAR(45) NOT NULL,
+    `reason` VARCHAR(255) NULL,
+    `expires_at` DATETIME NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_blocked_ip` (`ip`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- Flood Logs
+-- ============================================
+CREATE TABLE IF NOT EXISTS `flood_logs` (
+    `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `ip` VARCHAR(45) NOT NULL,
+    `attempts` INT UNSIGNED NOT NULL DEFAULT 1,
+    `blocked_until` DATETIME NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- Activity Logs
+-- ============================================
+CREATE TABLE IF NOT EXISTS `activity_logs` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `type` ENUM('panel', 'reseller', 'stream', 'user') NOT NULL DEFAULT 'panel',
+    `username` VARCHAR(100) NULL,
+    `action` VARCHAR(100) NOT NULL,
+    `details` TEXT NULL,
+    `ip` VARCHAR(45) NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_activity_type` (`type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- Credit Logs
+-- ============================================
+CREATE TABLE IF NOT EXISTS `credit_logs` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `username` VARCHAR(100) NOT NULL,
+    `amount` INT NOT NULL,
+    `type` ENUM('add', 'deduct', 'transfer') NOT NULL DEFAULT 'add',
+    `note` VARCHAR(255) NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- Login Logs
+-- ============================================
+CREATE TABLE IF NOT EXISTS `login_logs` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `username` VARCHAR(100) NOT NULL,
+    `ip` VARCHAR(45) NULL,
+    `user_agent` VARCHAR(512) NULL,
+    `status` ENUM('success', 'failed') NOT NULL DEFAULT 'success',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- Stream Logs
+-- ============================================
+CREATE TABLE IF NOT EXISTS `stream_logs` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `stream_id` INT UNSIGNED NULL,
+    `stream_name` VARCHAR(255) NULL,
+    `action` VARCHAR(100) NOT NULL,
+    `status` ENUM('success', 'failed', 'error') NOT NULL DEFAULT 'success',
+    `error_message` TEXT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================

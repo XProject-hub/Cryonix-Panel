@@ -39,12 +39,133 @@ switch ($section) {
         require CRYONIX_ROOT . '/views/admin/process.php';
         break;
         
+    // Service Setup
+    case 'packages':
+        require CRYONIX_ROOT . '/views/admin/management/packages.php';
+        break;
+    case 'groups':
+        require CRYONIX_ROOT . '/views/admin/management/groups.php';
+        break;
+    case 'epg':
+        require CRYONIX_ROOT . '/views/admin/management/epg.php';
+        break;
+    case 'channel-order':
+        require CRYONIX_ROOT . '/views/admin/management/channel-order.php';
+        break;
+    case 'folder-watch':
+        require CRYONIX_ROOT . '/views/admin/management/folder-watch.php';
+        break;
+    case 'subresellers':
+        require CRYONIX_ROOT . '/views/admin/management/subresellers.php';
+        break;
+    case 'transcode':
+        require CRYONIX_ROOT . '/views/admin/management/transcode.php';
+        break;
+    case 'provider-check':
+        require CRYONIX_ROOT . '/views/admin/management/provider-check.php';
+        break;
+        
+    // Security
+    case 'security':
+        $subAction = $action ?? 'center';
+        require CRYONIX_ROOT . '/views/admin/security/' . $subAction . '.php';
+        break;
+        
+    // Tools
+    case 'tools':
+        $subAction = $action ?? 'quick';
+        require CRYONIX_ROOT . '/views/admin/tools/' . $subAction . '.php';
+        break;
+        
+    // Logs
+    case 'logs':
+        $subAction = $action ?? 'panel';
+        require CRYONIX_ROOT . '/views/admin/logs/' . $subAction . '.php';
+        break;
+        
     // Users / Lines
     case 'users':
         if ($action === 'add' || $action === 'edit') {
             require CRYONIX_ROOT . '/views/admin/users-add.php';
+        } elseif ($action === 'mass-edit') {
+            require CRYONIX_ROOT . '/views/admin/users-mass-edit.php';
+        } elseif ($action === 'stats') {
+            require CRYONIX_ROOT . '/views/admin/users-stats.php';
         } else {
             require CRYONIX_ROOT . '/views/admin/users.php';
+        }
+        break;
+        
+    // MAG Devices
+    case 'mag':
+        if ($action === 'add') {
+            require CRYONIX_ROOT . '/views/admin/mag/add.php';
+        } elseif ($action === 'link') {
+            require CRYONIX_ROOT . '/views/admin/mag/link.php';
+        } else {
+            require CRYONIX_ROOT . '/views/admin/mag/index.php';
+        }
+        break;
+        
+    // Enigma Devices
+    case 'enigma':
+        if ($action === 'add') {
+            require CRYONIX_ROOT . '/views/admin/enigma/add.php';
+        } elseif ($action === 'link') {
+            require CRYONIX_ROOT . '/views/admin/enigma/link.php';
+        } else {
+            require CRYONIX_ROOT . '/views/admin/enigma/index.php';
+        }
+        break;
+        
+    // User Action API
+    case 'api':
+        if ($action === 'user-action') {
+            header('Content-Type: application/json');
+            $input = json_decode(file_get_contents('php://input'), true);
+            $userId = $input['user_id'] ?? 0;
+            $userAction = $input['action'] ?? '';
+            
+            require_once CRYONIX_ROOT . '/core/Database.php';
+            $db = \CryonixPanel\Core\Database::getInstance();
+            
+            try {
+                switch ($userAction) {
+                    case 'reset-isp':
+                        $db->update('`lines`', ['allowed_ips' => null], 'id = ?', [$userId]);
+                        echo json_encode(['success' => true, 'message' => 'ISP reset']);
+                        break;
+                    case 'lock-isp':
+                        // Lock current IP
+                        echo json_encode(['success' => true, 'message' => 'ISP locked']);
+                        break;
+                    case 'extend':
+                        $db->query("UPDATE `lines` SET exp_date = DATE_ADD(exp_date, INTERVAL 30 DAY) WHERE id = ?", [$userId]);
+                        echo json_encode(['success' => true, 'message' => 'Extended 30 days']);
+                        break;
+                    case 'kill':
+                        $db->update('`lines`', ['current_connections' => 0], 'id = ?', [$userId]);
+                        echo json_encode(['success' => true, 'message' => 'Connections killed']);
+                        break;
+                    case 'ban':
+                        $db->update('`lines`', ['is_banned' => 1], 'id = ?', [$userId]);
+                        echo json_encode(['success' => true, 'message' => 'User banned']);
+                        break;
+                    case 'disable':
+                        $db->update('`lines`', ['status' => 'disabled'], 'id = ?', [$userId]);
+                        echo json_encode(['success' => true, 'message' => 'User disabled']);
+                        break;
+                    case 'delete':
+                        $db->delete('`lines`', 'id = ?', [$userId]);
+                        echo json_encode(['success' => true, 'message' => 'User deleted']);
+                        break;
+                    default:
+                        echo json_encode(['success' => false, 'error' => 'Unknown action']);
+                }
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            }
+            exit;
         }
         break;
         
