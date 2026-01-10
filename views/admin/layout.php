@@ -69,9 +69,27 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
             <!-- Navigation -->
             <nav class="flex items-center gap-0.5">
                 <!-- Dashboard -->
-                <a href="<?= $adminPath ?>/dashboard" class="nav-link px-3 py-1.5 rounded text-xs font-medium transition <?= $currentRoute === '/dashboard' ? 'active' : 'text-gray-400 hover:text-white hover:bg-dark-800' ?>">
-                    DASHBOARD
-                </a>
+                <div class="nav-item">
+                    <button class="nav-link px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1 <?= $currentRoute === '/dashboard' || str_starts_with($currentRoute, '/connections') || str_starts_with($currentRoute, '/activity') || str_starts_with($currentRoute, '/process') ? 'active' : 'text-gray-400 hover:text-white hover:bg-dark-800' ?>">
+                        DASHBOARD <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </button>
+                    <div class="dropdown">
+                        <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1">
+                            <a href="<?= $adminPath ?>/dashboard" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                <span class="inline-block w-4 mr-1">📊</span> Dashboard
+                            </a>
+                            <a href="<?= $adminPath ?>/connections" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                <span class="inline-block w-4 mr-1">🔗</span> Live Connections
+                            </a>
+                            <a href="<?= $adminPath ?>/activity" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                <span class="inline-block w-4 mr-1">📋</span> Activity Logs
+                            </a>
+                            <a href="<?= $adminPath ?>/process" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                <span class="inline-block w-4 mr-1">⚙️</span> Process Monitor
+                            </a>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- Servers -->
                 <div class="nav-item">

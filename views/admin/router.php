@@ -27,6 +27,18 @@ switch ($section) {
         require CRYONIX_ROOT . '/views/admin/dashboard.php';
         break;
         
+    case 'connections':
+        require CRYONIX_ROOT . '/views/admin/connections.php';
+        break;
+        
+    case 'activity':
+        require CRYONIX_ROOT . '/views/admin/activity.php';
+        break;
+        
+    case 'process':
+        require CRYONIX_ROOT . '/views/admin/process.php';
+        break;
+        
     // Users / Lines
     case 'users':
         if ($action === 'add' || $action === 'edit') {
