@@ -118,8 +118,26 @@ switch ($section) {
         }
         break;
         
-    // User Action API
+    // API endpoints
     case 'api':
+        header('Content-Type: application/json');
+        
+        // Updates API
+        if ($action === 'updates') {
+            require_once CRYONIX_ROOT . '/core/Updater.php';
+            $updater = new \CryonixPanel\Core\Updater();
+            
+            if ($id === 'check') {
+                $info = $updater->checkForUpdates();
+                echo json_encode($info);
+                exit;
+            } elseif ($id === 'apply' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+                $result = $updater->applyUpdate();
+                echo json_encode($result);
+                exit;
+            }
+        }
+        
         if ($action === 'user-action') {
             header('Content-Type: application/json');
             $input = json_decode(file_get_contents('php://input'), true);

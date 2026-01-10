@@ -507,10 +507,11 @@ ob_start();
         <div id="tab-updates" class="tab-content glass rounded-xl border border-gray-800/50 p-6">
             <div class="text-center py-8">
                 <h2 class="text-xl font-bold text-white mb-4">System Updates</h2>
-                <p class="text-gray-400 mb-6">Check for updates from GitHub repository</p>
+                <p class="text-gray-400 mb-2">Current Version: <span class="text-cryo-400 font-bold"><?= $currentVersion ?></span></p>
+                <p class="text-gray-500 text-sm mb-6">Check for available updates</p>
                 
                 <div id="updateStatus" class="mb-6">
-                    <p class="text-gray-500">Click the button to check for updates</p>
+                    <p class="text-gray-500">Click the button below to check for new versions</p>
                 </div>
                 
                 <button type="button" onclick="checkForUpdates()" class="px-6 py-3 rounded-lg bg-cryo-500 text-white font-medium hover:bg-cryo-600 transition">
@@ -534,24 +535,41 @@ function checkForUpdates() {
     document.getElementById('updateStatus').innerHTML = '<p class="text-amber-400">Checking for updates...</p>';
     
     fetch('<?= ADMIN_PATH ?>/api/updates/check')
-        .then(r => r.json())
+        .then(r => {
+            if (!r.ok) throw new Error('Server error');
+            return r.text();
+        })
+        .then(text => {
+            if (!text) throw new Error('Empty response');
+            return JSON.parse(text);
+        })
         .then(data => {
+            if (data.error) {
+                document.getElementById('updateStatus').innerHTML = '<p class="text-red-400">' + data.error + '</p>';
+                return;
+            }
             if (data.available) {
                 document.getElementById('updateStatus').innerHTML = `
                     <div class="p-4 rounded-lg bg-green-500/10 border border-green-500/30 mb-4">
                         <p class="text-green-400 font-medium">Update Available!</p>
-                        <p class="text-gray-400">v${data.current} → v${data.latest}</p>
+                        <p class="text-gray-400 text-sm">Installed: ${data.current}</p>
+                        <p class="text-white font-medium">Latest: ${data.latest}</p>
                     </div>
-                    <button onclick="applyUpdate()" class="px-6 py-3 rounded-lg bg-green-500 text-white font-medium hover:bg-green-600 transition">
+                    <button type="button" onclick="applyUpdate()" class="px-6 py-3 rounded-lg bg-green-500 text-white font-medium hover:bg-green-600 transition">
                         Apply Update
                     </button>
                 `;
             } else {
-                document.getElementById('updateStatus').innerHTML = '<p class="text-green-400">You are running the latest version!</p>';
+                document.getElementById('updateStatus').innerHTML = `
+                    <div class="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+                        <p class="text-green-400 font-medium">You are running the latest version!</p>
+                        <p class="text-gray-400 text-sm">Version: ${data.current || '<?= $currentVersion ?>'}</p>
+                    </div>
+                `;
             }
         })
         .catch(err => {
-            document.getElementById('updateStatus').innerHTML = '<p class="text-red-400">Error checking updates: ' + err + '</p>';
+            document.getElementById('updateStatus').innerHTML = '<p class="text-red-400">Error: ' + err.message + '</p>';
         });
 }
 
@@ -561,7 +579,14 @@ function applyUpdate() {
     document.getElementById('updateStatus').innerHTML = '<p class="text-amber-400">Applying update... Please wait...</p>';
     
     fetch('<?= ADMIN_PATH ?>/api/updates/apply', { method: 'POST' })
-        .then(r => r.json())
+        .then(r => {
+            if (!r.ok) throw new Error('Server error');
+            return r.text();
+        })
+        .then(text => {
+            if (!text) throw new Error('Empty response');
+            return JSON.parse(text);
+        })
         .then(data => {
             if (data.success) {
                 document.getElementById('updateStatus').innerHTML = '<p class="text-green-400">Update applied! Refreshing...</p>';
@@ -571,7 +596,7 @@ function applyUpdate() {
             }
         })
         .catch(err => {
-            document.getElementById('updateStatus').innerHTML = '<p class="text-red-400">Error: ' + err + '</p>';
+            document.getElementById('updateStatus').innerHTML = '<p class="text-red-400">Error: ' + err.message + '</p>';
         });
 }
 </script>
