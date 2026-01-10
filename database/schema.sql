@@ -480,5 +480,47 @@ INSERT INTO `settings` (`key`, `value`, `type`) VALUES
 ('admin_path', 'admin', 'string')
 ON DUPLICATE KEY UPDATE `value` = VALUES(`value`);
 
+-- ============================================
+-- Active Connections Tracking
+-- ============================================
+CREATE TABLE IF NOT EXISTS `connections` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `line_id` INT UNSIGNED NOT NULL,
+    `stream_id` INT UNSIGNED NULL,
+    `server_id` INT UNSIGNED NULL,
+    `ip_address` VARCHAR(45) NOT NULL,
+    `user_agent` VARCHAR(512) NULL,
+    `country` VARCHAR(2) NULL,
+    `isp` VARCHAR(255) NULL,
+    `is_active` TINYINT(1) NOT NULL DEFAULT 1,
+    `bytes_sent` BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    `started_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `ended_at` DATETIME NULL,
+    INDEX `idx_conn_line` (`line_id`),
+    INDEX `idx_conn_stream` (`stream_id`),
+    INDEX `idx_conn_active` (`is_active`),
+    INDEX `idx_conn_started` (`started_at`),
+    FOREIGN KEY (`line_id`) REFERENCES `lines`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`stream_id`) REFERENCES `streams`(`id`) ON DELETE SET NULL,
+    FOREIGN KEY (`server_id`) REFERENCES `servers`(`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- Activity Logs
+-- ============================================
+CREATE TABLE IF NOT EXISTS `activity_logs` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT UNSIGNED NULL,
+    `line_id` INT UNSIGNED NULL,
+    `action` VARCHAR(100) NOT NULL,
+    `description` TEXT NULL,
+    `ip_address` VARCHAR(45) NULL,
+    `user_agent` VARCHAR(512) NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_activity_user` (`user_id`),
+    INDEX `idx_activity_action` (`action`),
+    INDEX `idx_activity_date` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET FOREIGN_KEY_CHECKS = 1;
 

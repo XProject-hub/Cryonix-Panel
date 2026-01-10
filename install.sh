@@ -199,6 +199,24 @@ server {
     index index.php;
     client_max_body_size 100M;
     
+    # Live stream handler
+    location ~ ^/live/(.*)$ {
+        fastcgi_pass unix:/var/run/php/php${PHP_VER}-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME ${INSTALL_DIR}/public/live.php;
+        fastcgi_param PATH_INFO \$1;
+        include fastcgi_params;
+        fastcgi_buffering off;
+        fastcgi_request_buffering off;
+        proxy_buffering off;
+    }
+    
+    # Get playlist handler
+    location = /get.php {
+        fastcgi_pass unix:/var/run/php/php${PHP_VER}-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+        include fastcgi_params;
+    }
+    
     location / { try_files \$uri \$uri/ /index.php?\$query_string; }
     location ~ \.php\$ {
         fastcgi_pass unix:/var/run/php/php${PHP_VER}-fpm.sock;
