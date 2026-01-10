@@ -104,12 +104,14 @@ ob_start();
                 <td class="px-3 py-2 text-gray-400"><?= $server['id'] ?></td>
                 <td class="px-3 py-2">
                     <div class="flex items-center gap-1">
-                        <div class="relative group">
-                            <button class="px-2 py-1 rounded bg-cyan-500 text-white text-[10px]">Options</button>
-                            <div class="hidden group-hover:block absolute left-0 top-full mt-1 bg-dark-900 rounded shadow-xl border border-gray-800 py-1 z-10 min-w-[120px]">
-                                <a href="<?= ADMIN_PATH ?>/servers/edit/<?= $server['id'] ?>" class="block px-3 py-1 text-gray-400 hover:text-white hover:bg-dark-800">Edit</a>
-                                <a href="#" class="block px-3 py-1 text-gray-400 hover:text-white hover:bg-dark-800">Restart</a>
-                                <a href="#" class="block px-3 py-1 text-gray-400 hover:text-white hover:bg-dark-800">Sync</a>
+                        <div class="relative" x-data="{open: false}">
+                            <button @click="open = !open" class="px-2 py-1 rounded bg-cyan-500 text-white text-[10px] flex items-center gap-1">
+                                Options <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div x-show="open" @click.away="open = false" class="absolute left-0 top-full mt-1 bg-dark-900 rounded shadow-xl border border-gray-800 py-1 z-50 min-w-[120px]">
+                                <a href="<?= ADMIN_PATH ?>/servers/edit/<?= $server['id'] ?>" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-dark-800">Edit</a>
+                                <a href="#" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-dark-800">Restart</a>
+                                <a href="#" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-dark-800">Sync</a>
                             </div>
                         </div>
                         <?php if (!$isMain): ?>
