@@ -75,18 +75,10 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
                     </button>
                     <div class="dropdown">
                         <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1">
-                            <a href="<?= $adminPath ?>/dashboard" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
-                                <span class="inline-block w-4 mr-1">📊</span> Dashboard
-                            </a>
-                            <a href="<?= $adminPath ?>/connections" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
-                                <span class="inline-block w-4 mr-1">🔗</span> Live Connections
-                            </a>
-                            <a href="<?= $adminPath ?>/activity" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
-                                <span class="inline-block w-4 mr-1">📋</span> Activity Logs
-                            </a>
-                            <a href="<?= $adminPath ?>/process" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
-                                <span class="inline-block w-4 mr-1">⚙️</span> Process Monitor
-                            </a>
+                            <a href="<?= $adminPath ?>/dashboard" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Dashboard</a>
+                            <a href="<?= $adminPath ?>/connections" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Live Connections</a>
+                            <a href="<?= $adminPath ?>/activity" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Activity Logs</a>
+                            <a href="<?= $adminPath ?>/process" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Process Monitor</a>
                         </div>
                     </div>
                 </div>
