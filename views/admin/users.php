@@ -13,7 +13,7 @@ $error = '';
 
 try {
     $db = Database::getInstance();
-    $users = $db->fetchAll("SELECT * FROM lines ORDER BY created_at DESC LIMIT 100") ?: [];
+    $users = $db->fetchAll("SELECT * FROM `lines` ORDER BY created_at DESC LIMIT 100") ?: [];
 } catch (\Exception $e) {
     $error = 'Database error: ' . $e->getMessage();
 }

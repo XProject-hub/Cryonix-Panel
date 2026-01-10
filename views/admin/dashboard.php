@@ -24,31 +24,40 @@ $mainServer = null;
 try {
     $db = Database::getInstance();
     
-    // Get stats
-    $stats['online_users'] = $db->count('user_activity', 'ended_at IS NULL');
-    $stats['open_connections'] = $db->count('user_activity', 'ended_at IS NULL');
-    $stats['online_streams'] = $db->count('streams', "status = 'online' OR status IS NULL");
-    $stats['offline_streams'] = $db->count('streams', "status = 'offline'");
+    // Get stats (use backticks for reserved words)
+    $stats['online_users'] = $db->count('`user_activity`', 'ended_at IS NULL');
+    $stats['open_connections'] = $db->count('`user_activity`', 'ended_at IS NULL');
+    $stats['online_streams'] = $db->count('`streams`', "status = 'online' OR status IS NULL");
+    $stats['offline_streams'] = $db->count('`streams`', "status = 'offline'");
     
-    // Get servers
-    $servers = $db->fetchAll("SELECT * FROM servers ORDER BY is_main DESC, server_name") ?: [];
-    
-    // Find or create main server
-    $mainServer = $db->fetch("SELECT * FROM servers WHERE is_main = 1");
+    // Find or create main server (only if none exists)
+    $mainServer = $db->fetch("SELECT * FROM servers WHERE is_main = 1 LIMIT 1");
     if (!$mainServer) {
-        // Auto-create main server
-        $serverIp = $_SERVER['SERVER_ADDR'] ?? trim(shell_exec("hostname -I | awk '{print $1}'"));
+        // Get real server IP
+        $serverIp = trim(shell_exec("curl -s ifconfig.me 2>/dev/null") ?: '');
+        if (empty($serverIp)) {
+            $serverIp = trim(shell_exec("hostname -I 2>/dev/null | awk '{print $1}'") ?: '');
+        }
+        if (empty($serverIp) || $serverIp === '127.0.0.1') {
+            $serverIp = $_SERVER['SERVER_ADDR'] ?? '0.0.0.0';
+        }
+        
+        // Delete any existing main servers first (cleanup)
+        $db->query("DELETE FROM servers WHERE is_main = 1");
+        
         $db->insert('servers', [
             'server_name' => 'Main Server',
             'server_ip' => $serverIp,
-            'server_port' => 80,
+            'http_port' => 80,
             'is_main' => 1,
             'status' => 'online',
             'created_at' => date('Y-m-d H:i:s')
         ]);
-        $mainServer = $db->fetch("SELECT * FROM servers WHERE is_main = 1");
-        $servers = $db->fetchAll("SELECT * FROM servers ORDER BY is_main DESC, server_name") ?: [];
+        $mainServer = $db->fetch("SELECT * FROM servers WHERE is_main = 1 LIMIT 1");
     }
+    
+    // Get all servers
+    $servers = $db->fetchAll("SELECT * FROM servers ORDER BY is_main DESC, server_name") ?: [];
     
     // Calculate total bandwidth from all servers
     foreach ($servers as $server) {
