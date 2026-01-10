@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($isEdit) {
                 $db->update('streams', $data, 'id = ?', [$streamId]);
             } else {
-                $data['added'] = date('Y-m-d H:i:s');
+                $data['created_at'] = date('Y-m-d H:i:s');
                 $db->insert('streams', $data);
             }
             
