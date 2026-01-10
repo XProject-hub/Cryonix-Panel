@@ -10,15 +10,27 @@ class Updater {
     private string $githubRepo = 'XProject-hub/Cryonix-Panel';
     private string $currentVersion;
     private string $installDir;
+    private ?string $githubToken = null;
     
     public function __construct() {
         $this->installDir = dirname(__DIR__);
         $this->currentVersion = $this->getCurrentVersion();
+        
+        // Load GitHub token from env for private repos
+        $this->githubToken = $_ENV['GITHUB_TOKEN'] ?? null;
     }
     
     public function getCurrentVersion(): string {
         $versionFile = $this->installDir . '/VERSION';
         return file_exists($versionFile) ? trim(file_get_contents($versionFile)) : '1.0.0';
+    }
+    
+    private function getHeaders(): array {
+        $headers = ['User-Agent: CryonixPanel/1.0', 'Accept: application/vnd.github.v3+json'];
+        if ($this->githubToken) {
+            $headers[] = 'Authorization: token ' . $this->githubToken;
+        }
+        return $headers;
     }
     
     public function checkForUpdates(): array {
@@ -27,7 +39,7 @@ class Updater {
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTPHEADER => ['User-Agent: CryonixPanel/1.0', 'Accept: application/vnd.github.v3+json']
+            CURLOPT_HTTPHEADER => $this->getHeaders()
         ]);
         $response = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -56,7 +68,7 @@ class Updater {
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTPHEADER => ['User-Agent: CryonixPanel/1.0']
+            CURLOPT_HTTPHEADER => $this->getHeaders()
         ]);
         $response = curl_exec($ch);
         curl_close($ch);
@@ -104,7 +116,7 @@ class Updater {
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_TIMEOUT => 300,
-                CURLOPT_HTTPHEADER => ['User-Agent: CryonixPanel/1.0']
+                CURLOPT_HTTPHEADER => $this->getHeaders()
             ]);
             $data = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
