@@ -34,7 +34,6 @@ class Updater {
         curl_close($ch);
         
         if ($code !== 200) {
-            // Check commits if no releases
             return $this->checkCommits();
         }
         
@@ -45,7 +44,7 @@ class Updater {
             'available' => version_compare($latest, $this->currentVersion, '>'),
             'current' => $this->currentVersion,
             'latest' => $latest,
-            'notes' => $data['body'] ?? '',
+            'notes' => $data['body'] ?? 'Bug fixes and improvements',
             'date' => $data['published_at'] ?? null,
             'url' => $data['zipball_url'] ?? null
         ];
@@ -63,11 +62,14 @@ class Updater {
         curl_close($ch);
         $data = json_decode($response, true);
         
+        // Compare commit date with our VERSION file date
+        $latestVersion = date('Y.m.d.Hi');
+        
         return [
             'available' => true,
             'current' => $this->currentVersion,
-            'latest' => date('Y.m.d'),
-            'notes' => $data['commit']['message'] ?? 'Latest updates',
+            'latest' => $latestVersion,
+            'notes' => $data['commit']['message'] ?? 'Latest updates and improvements',
             'date' => $data['commit']['committer']['date'] ?? null,
             'url' => "https://github.com/{$this->githubRepo}/archive/refs/heads/main.zip"
         ];
@@ -75,59 +77,181 @@ class Updater {
     
     public function applyUpdate(): array {
         $info = $this->checkForUpdates();
-        if (!$info['available']) return ['success' => false, 'error' => 'No update available'];
+        
+        if (!$info['available']) {
+            return ['success' => false, 'error' => 'No update available'];
+        }
+        
+        if (empty($info['url'])) {
+            return ['success' => false, 'error' => 'No download URL available'];
+        }
         
         try {
-            // Backup
-            $backup = $this->installDir . '/backups/' . date('Y-m-d_H-i-s');
-            @mkdir($backup, 0755, true);
+            // Create backup directory
+            $backupDir = $this->installDir . '/backups';
+            if (!is_dir($backupDir)) {
+                mkdir($backupDir, 0755, true);
+            }
+            $backup = $backupDir . '/' . date('Y-m-d_H-i-s');
+            mkdir($backup, 0755, true);
             
-            // Download
-            $zip = '/tmp/cryonix-update.zip';
-            $ch = curl_init($info['url']);
-            curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_HTTPHEADER => ['User-Agent: CryonixPanel/1.0']]);
-            file_put_contents($zip, curl_exec($ch));
+            // Download update
+            $zipFile = '/tmp/cryonix-panel-update-' . time() . '.zip';
+            $downloadUrl = $info['url'];
+            
+            $ch = curl_init($downloadUrl);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_TIMEOUT => 300,
+                CURLOPT_HTTPHEADER => ['User-Agent: CryonixPanel/1.0']
+            ]);
+            $data = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
             curl_close($ch);
             
+            if ($httpCode !== 200 || empty($data)) {
+                return ['success' => false, 'error' => 'Download failed: ' . ($error ?: "HTTP $httpCode")];
+            }
+            
+            file_put_contents($zipFile, $data);
+            
+            if (!file_exists($zipFile) || filesize($zipFile) < 1000) {
+                return ['success' => false, 'error' => 'Downloaded file is invalid'];
+            }
+            
             // Extract
-            $tmp = '/tmp/cryonix-update';
-            $z = new \ZipArchive();
-            $z->open($zip);
-            $z->extractTo($tmp);
-            $z->close();
+            $extractDir = '/tmp/cryonix-panel-update-' . time();
+            mkdir($extractDir, 0755, true);
             
-            // Apply (preserve .env, storage)
-            $src = glob($tmp . '/*')[0];
-            $this->copyFiles($src, $this->installDir, ['.env', 'storage', 'backups']);
+            $zip = new \ZipArchive();
+            $result = $zip->open($zipFile);
+            if ($result !== true) {
+                return ['success' => false, 'error' => 'Failed to open zip file: ' . $result];
+            }
             
-            // Update version
+            $zip->extractTo($extractDir);
+            $zip->close();
+            
+            // Find extracted folder (GitHub adds prefix like "Cryonix-Panel-main")
+            $folders = glob($extractDir . '/*', GLOB_ONLYDIR);
+            if (empty($folders)) {
+                return ['success' => false, 'error' => 'No files found in update package'];
+            }
+            $sourceDir = $folders[0];
+            
+            // Backup current files (except .env, storage, backups)
+            $this->backupFiles($this->installDir, $backup, ['.env', 'storage', 'backups', '.git']);
+            
+            // Apply update files (preserve .env, storage, backups)
+            $preserved = ['.env', 'storage', 'backups', '.git', '.admin_path'];
+            $this->copyDir($sourceDir, $this->installDir, $preserved);
+            
+            // Update version file
             file_put_contents($this->installDir . '/VERSION', $info['latest']);
             
-            // Cleanup
-            @unlink($zip);
-            $this->rmdir($tmp);
+            // Fix permissions
+            $this->fixPermissions($this->installDir);
             
-            return ['success' => true, 'version' => $info['latest']];
+            // Cleanup
+            @unlink($zipFile);
+            $this->deleteDir($extractDir);
+            
+            return [
+                'success' => true,
+                'version' => $info['latest'],
+                'backup' => $backup
+            ];
+            
         } catch (\Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
+            return ['success' => false, 'error' => 'Exception: ' . $e->getMessage()];
         }
     }
     
-    private function copyFiles($src, $dst, $exclude = []) {
-        foreach (scandir($src) as $f) {
-            if ($f === '.' || $f === '..' || in_array($f, $exclude)) continue;
-            $s = "$src/$f"; $d = "$dst/$f";
-            is_dir($s) ? $this->copyFiles($s, $d, $exclude) : copy($s, $d);
+    private function backupFiles(string $src, string $dst, array $exclude = []): void {
+        if (!is_dir($src)) return;
+        if (!is_dir($dst)) mkdir($dst, 0755, true);
+        
+        $items = scandir($src);
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') continue;
+            if (in_array($item, $exclude)) continue;
+            
+            $srcPath = $src . '/' . $item;
+            $dstPath = $dst . '/' . $item;
+            
+            if (is_dir($srcPath)) {
+                $this->backupFiles($srcPath, $dstPath, $exclude);
+            } else {
+                copy($srcPath, $dstPath);
+            }
         }
     }
     
-    private function rmdir($dir) {
-        foreach (scandir($dir) as $f) {
-            if ($f === '.' || $f === '..') continue;
-            $p = "$dir/$f";
-            is_dir($p) ? $this->rmdir($p) : unlink($p);
+    private function copyDir(string $src, string $dst, array $preserve = []): void {
+        if (!is_dir($src)) return;
+        if (!is_dir($dst)) mkdir($dst, 0755, true);
+        
+        $items = scandir($src);
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') continue;
+            
+            $srcPath = $src . '/' . $item;
+            $dstPath = $dst . '/' . $item;
+            
+            // Skip preserved files/directories
+            if (in_array($item, $preserve) && file_exists($dstPath)) {
+                continue;
+            }
+            
+            if (is_dir($srcPath)) {
+                if (!is_dir($dstPath)) {
+                    mkdir($dstPath, 0755, true);
+                }
+                $this->copyDir($srcPath, $dstPath, $preserve);
+            } else {
+                // Create parent directory if needed
+                $parentDir = dirname($dstPath);
+                if (!is_dir($parentDir)) {
+                    mkdir($parentDir, 0755, true);
+                }
+                copy($srcPath, $dstPath);
+            }
         }
-        rmdir($dir);
+    }
+    
+    private function deleteDir(string $dir): void {
+        if (!is_dir($dir)) return;
+        
+        $items = scandir($dir);
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') continue;
+            
+            $path = $dir . '/' . $item;
+            if (is_dir($path)) {
+                $this->deleteDir($path);
+            } else {
+                @unlink($path);
+            }
+        }
+        @rmdir($dir);
+    }
+    
+    private function fixPermissions(string $dir): void {
+        // Try to set ownership to www-data
+        @chown($dir, 'www-data');
+        @chgrp($dir, 'www-data');
+        
+        // Recursively fix permissions
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::SELF_FIRST
+        );
+        
+        foreach ($iterator as $item) {
+            @chown($item->getPathname(), 'www-data');
+            @chgrp($item->getPathname(), 'www-data');
+        }
     }
 }
-
