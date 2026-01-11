@@ -79,23 +79,24 @@ ob_start();
 
 <style>
 .tab-btn { transition: all 0.2s; border: none; }
-.tab-btn.active { background: linear-gradient(90deg, #14b8a6, #0d9488); color: white; }
+.tab-btn.active { background: linear-gradient(90deg, #0ea5e9, #3b82f6); color: white; }
 .tab-content { display: none; }
 .tab-content.active { display: block; }
-.form-label { display: block; font-size: 0.75rem; color: #ef4444; margin-bottom: 0.25rem; font-weight: 500; }
-.form-label-normal { display: block; font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.25rem; }
-.form-input { width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; background: white; border: 1px solid #d1d5db; color: #111; font-size: 0.875rem; }
-.form-input:focus { outline: none; border-color: #14b8a6; }
+.form-label { display: block; font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.25rem; font-weight: 500; }
+.form-input { width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; background: #1e2028; border: 1px solid #374151; color: white; font-size: 0.875rem; }
+.form-input:focus { outline: none; border-color: #0ea5e9; }
+.form-input::placeholder { color: #6b7280; }
 .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
 .toggle input { opacity: 0; width: 0; height: 0; }
-.toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #d1d5db; border-radius: 24px; transition: 0.3s; }
+.toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #374151; border-radius: 24px; transition: 0.3s; }
 .toggle-slider:before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
 .toggle input:checked + .toggle-slider { background: #10b981; }
 .toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
-.form-row { display: grid; grid-template-columns: 140px 1fr; gap: 1rem; align-items: center; margin-bottom: 1rem; }
-.form-row-2col { display: grid; grid-template-columns: 140px 1fr 140px 1fr; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+.form-row { display: grid; grid-template-columns: 160px 1fr; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+.form-row-2col { display: grid; grid-template-columns: 160px 1fr 160px 1fr; gap: 1rem; align-items: center; margin-bottom: 1rem; }
 .url-input-group { display: flex; gap: 0.25rem; }
-.url-btn { padding: 0.5rem; border-radius: 0.375rem; border: none; cursor: pointer; }
+.url-btn { padding: 0.5rem; border-radius: 0.375rem; border: none; cursor: pointer; transition: all 0.2s; }
+.url-btn:hover { opacity: 0.8; }
 </style>
 
 <div class="max-w-5xl mx-auto">
@@ -118,16 +119,16 @@ ob_start();
     <form method="POST" id="streamForm">
         <!-- Tabs -->
         <div class="flex gap-1 mb-4">
-            <button type="button" class="tab-btn active px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-xs font-medium" data-tab="details">DETAILS</button>
-            <button type="button" class="tab-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-xs font-medium" data-tab="advanced">ADVANCED</button>
-            <button type="button" class="tab-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-xs font-medium" data-tab="map">MAP</button>
-            <button type="button" class="tab-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-xs font-medium" data-tab="restart">RESTART</button>
-            <button type="button" class="tab-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-xs font-medium" data-tab="epg">EPG</button>
-            <button type="button" class="tab-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700 text-xs font-medium" data-tab="servers">SERVERS</button>
+            <button type="button" class="tab-btn active px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-xs font-medium" data-tab="details">DETAILS</button>
+            <button type="button" class="tab-btn px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-xs font-medium" data-tab="advanced">ADVANCED</button>
+            <button type="button" class="tab-btn px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-xs font-medium" data-tab="map">MAP</button>
+            <button type="button" class="tab-btn px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-xs font-medium" data-tab="restart">RESTART</button>
+            <button type="button" class="tab-btn px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-xs font-medium" data-tab="epg">EPG</button>
+            <button type="button" class="tab-btn px-4 py-2 rounded-lg bg-gray-800 text-gray-300 text-xs font-medium" data-tab="servers">SERVERS</button>
         </div>
         
         <!-- DETAILS Tab -->
-        <div id="tab-details" class="tab-content active bg-gray-100 rounded-xl p-6">
+        <div id="tab-details" class="tab-content active glass rounded-xl border border-gray-800/50 p-6">
             <div class="form-row">
                 <label class="form-label">Stream Name</label>
                 <input type="text" name="stream_name" value="<?= htmlspecialchars($stream['stream_display_name'] ?? '') ?>" class="form-input" required>
@@ -169,12 +170,12 @@ ob_start();
                 <textarea name="notes" rows="3" class="form-input"><?= htmlspecialchars($stream['notes'] ?? '') ?></textarea>
             </div>
             <div class="flex justify-end">
-                <button type="button" onclick="nextTab('advanced')" class="px-6 py-2 rounded-lg bg-gray-500 text-white font-medium hover:bg-gray-600 transition">Next</button>
+                <button type="button" onclick="nextTab('advanced')" class="px-6 py-2 rounded-lg bg-gray-700 text-white font-medium hover:bg-gray-600 transition">Next</button>
             </div>
         </div>
         
         <!-- ADVANCED Tab -->
-        <div id="tab-advanced" class="tab-content bg-gray-100 rounded-xl p-6">
+        <div id="tab-advanced" class="tab-content glass rounded-xl border border-gray-800/50 p-6">
             <div class="form-row-2col">
                 <label class="form-label-normal">Generate PTS</label>
                 <label class="toggle"><input type="checkbox" name="generate_pts" value="1" checked><span class="toggle-slider"></span></label>
@@ -231,13 +232,13 @@ ob_start();
                 </select>
             </div>
             <div class="flex justify-between">
-                <button type="button" onclick="prevTab('details')" class="px-6 py-2 rounded-lg bg-gray-400 text-white font-medium hover:bg-gray-500 transition">Previous</button>
-                <button type="button" onclick="nextTab('map')" class="px-6 py-2 rounded-lg bg-gray-500 text-white font-medium hover:bg-gray-600 transition">Next</button>
+                <button type="button" onclick="prevTab('details')" class="px-6 py-2 rounded-lg bg-gray-700 text-white font-medium hover:bg-gray-600 transition">Previous</button>
+                <button type="button" onclick="nextTab('map')" class="px-6 py-2 rounded-lg bg-gray-700 text-white font-medium hover:bg-gray-600 transition">Next</button>
             </div>
         </div>
         
         <!-- MAP Tab -->
-        <div id="tab-map" class="tab-content bg-gray-100 rounded-xl p-6">
+        <div id="tab-map" class="tab-content glass rounded-xl border border-gray-800/50 p-6">
             <div class="form-row">
                 <label class="form-label-normal">Custom Map</label>
                 <div class="flex gap-2">
@@ -245,29 +246,29 @@ ob_start();
                     <button type="button" class="px-4 py-2 rounded-lg bg-teal-500 text-white"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></button>
                 </div>
             </div>
-            <div class="p-4 rounded-lg bg-amber-100 border border-amber-300 text-amber-800 text-sm mb-4">
+            <div class="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 text-sm mb-4">
                 Custom maps are advanced features and you should only modify these if you know what you're doing. Hit the search icon to map the streams. Once mapped, you can select them from the table below.
             </div>
-            <table class="w-full bg-white rounded-lg overflow-hidden">
+            <table class="w-full bg-dark-800 rounded-lg overflow-hidden">
                 <thead>
-                    <tr class="bg-gray-200">
-                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-600">#</th>
-                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-600">TYPE</th>
-                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-600">INFORMATION</th>
+                    <tr class="bg-dark-900">
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-400">#</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-400">TYPE</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-400">INFORMATION</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td colspan="3" class="px-4 py-8 text-center text-gray-400">No data available in table</td></tr>
+                    <tr><td colspan="3" class="px-4 py-8 text-center text-gray-500">No data available in table</td></tr>
                 </tbody>
             </table>
             <div class="flex justify-between mt-4">
-                <button type="button" onclick="prevTab('advanced')" class="px-6 py-2 rounded-lg bg-gray-400 text-white font-medium hover:bg-gray-500 transition">Previous</button>
-                <button type="button" onclick="nextTab('restart')" class="px-6 py-2 rounded-lg bg-gray-500 text-white font-medium hover:bg-gray-600 transition">Next</button>
+                <button type="button" onclick="prevTab('advanced')" class="px-6 py-2 rounded-lg bg-gray-700 text-white font-medium hover:bg-gray-600 transition">Previous</button>
+                <button type="button" onclick="nextTab('restart')" class="px-6 py-2 rounded-lg bg-gray-700 text-white font-medium hover:bg-gray-600 transition">Next</button>
             </div>
         </div>
         
         <!-- RESTART Tab -->
-        <div id="tab-restart" class="tab-content bg-gray-100 rounded-xl p-6">
+        <div id="tab-restart" class="tab-content glass rounded-xl border border-gray-800/50 p-6">
             <div class="form-row">
                 <label class="form-label-normal">Days to Restart</label>
                 <input type="text" name="restart_days" class="form-input" placeholder="Mon,Tue,Wed...">
@@ -280,13 +281,13 @@ ob_start();
                 </div>
             </div>
             <div class="flex justify-between mt-4">
-                <button type="button" onclick="prevTab('map')" class="px-6 py-2 rounded-lg bg-gray-400 text-white font-medium hover:bg-gray-500 transition">Previous</button>
-                <button type="button" onclick="nextTab('epg')" class="px-6 py-2 rounded-lg bg-gray-500 text-white font-medium hover:bg-gray-600 transition">Next</button>
+                <button type="button" onclick="prevTab('map')" class="px-6 py-2 rounded-lg bg-gray-700 text-white font-medium hover:bg-gray-600 transition">Previous</button>
+                <button type="button" onclick="nextTab('epg')" class="px-6 py-2 rounded-lg bg-gray-700 text-white font-medium hover:bg-gray-600 transition">Next</button>
             </div>
         </div>
         
         <!-- EPG Tab -->
-        <div id="tab-epg" class="tab-content bg-gray-100 rounded-xl p-6">
+        <div id="tab-epg" class="tab-content glass rounded-xl border border-gray-800/50 p-6">
             <div class="form-row">
                 <label class="form-label-normal">EPG Source</label>
                 <select name="epg_source" class="form-input">
@@ -310,25 +311,25 @@ ob_start();
                 </select>
             </div>
             <div class="flex justify-between mt-4">
-                <button type="button" onclick="prevTab('restart')" class="px-6 py-2 rounded-lg bg-gray-400 text-white font-medium hover:bg-gray-500 transition">Previous</button>
-                <button type="button" onclick="nextTab('servers')" class="px-6 py-2 rounded-lg bg-gray-500 text-white font-medium hover:bg-gray-600 transition">Next</button>
+                <button type="button" onclick="prevTab('restart')" class="px-6 py-2 rounded-lg bg-gray-700 text-white font-medium hover:bg-gray-600 transition">Previous</button>
+                <button type="button" onclick="nextTab('servers')" class="px-6 py-2 rounded-lg bg-gray-700 text-white font-medium hover:bg-gray-600 transition">Next</button>
             </div>
         </div>
         
         <!-- SERVERS Tab -->
-        <div id="tab-servers" class="tab-content bg-gray-100 rounded-xl p-6">
+        <div id="tab-servers" class="tab-content glass rounded-xl border border-gray-800/50 p-6">
             <div class="form-row" style="align-items: flex-start;">
                 <label class="form-label-normal">Server Tree</label>
-                <div class="bg-white rounded-lg border p-4 max-h-64 overflow-y-auto">
+                <div class="bg-dark-800 rounded-lg border border-gray-700 p-4 max-h-64 overflow-y-auto">
                     <div class="space-y-1">
-                        <label class="flex items-center gap-2 p-1 hover:bg-gray-100 rounded cursor-pointer">
-                            <input type="checkbox" name="server_source" value="source" checked class="rounded">
-                            <span class="text-sm font-medium">Stream Source</span>
+                        <label class="flex items-center gap-2 p-1.5 hover:bg-dark-900 rounded cursor-pointer">
+                            <input type="checkbox" name="server_source" value="source" checked class="rounded bg-dark-900 border-gray-600">
+                            <span class="text-sm font-medium text-white">Stream Source</span>
                         </label>
                         <?php foreach ($servers as $srv): ?>
-                        <label class="flex items-center gap-2 p-1 hover:bg-gray-100 rounded cursor-pointer ml-4">
-                            <input type="checkbox" name="servers[]" value="<?= $srv['id'] ?>" <?= $srv['is_main'] ? 'checked' : '' ?> class="rounded">
-                            <span class="text-sm"><?= $srv['is_main'] ? '| Main Server |' : htmlspecialchars($srv['server_name']) ?></span>
+                        <label class="flex items-center gap-2 p-1.5 hover:bg-dark-900 rounded cursor-pointer ml-4">
+                            <input type="checkbox" name="servers[]" value="<?= $srv['id'] ?>" <?= $srv['is_main'] ? 'checked' : '' ?> class="rounded bg-dark-900 border-gray-600">
+                            <span class="text-sm text-gray-300"><?= $srv['is_main'] ? '| Main Server |' : htmlspecialchars($srv['server_name']) ?></span>
                         </label>
                         <?php endforeach; ?>
                     </div>
@@ -354,7 +355,7 @@ ob_start();
                 <label class="toggle"><input type="checkbox" name="start_stream" value="1"><span class="toggle-slider"></span></label>
             </div>
             <div class="flex justify-between mt-4">
-                <button type="button" onclick="prevTab('epg')" class="px-6 py-2 rounded-lg bg-gray-400 text-white font-medium hover:bg-gray-500 transition">Previous</button>
+                <button type="button" onclick="prevTab('epg')" class="px-6 py-2 rounded-lg bg-gray-700 text-white font-medium hover:bg-gray-600 transition">Previous</button>
                 <button type="submit" class="px-8 py-2 rounded-lg bg-cryo-500 text-white font-medium hover:bg-cryo-600 transition">Add</button>
             </div>
         </div>
