@@ -64,10 +64,9 @@ try {
     
     // Get streams with pagination
     $streams = $db->fetchAll("
-        SELECT s.*, c.category_name, srv.server_name
+        SELECT s.*, c.category_name
         FROM streams s
         LEFT JOIN stream_categories c ON s.category_id = c.id
-        LEFT JOIN servers srv ON s.server_id = srv.id
         WHERE $whereClause
         ORDER BY s.id DESC
         LIMIT $limit OFFSET $offset
@@ -201,7 +200,7 @@ ob_start();
                         <div class="text-xs text-gray-400 max-w-[200px] truncate" title="<?= htmlspecialchars($stream['stream_source']) ?>">
                             <?= htmlspecialchars(substr($stream['stream_source'], 0, 50)) ?>...
                         </div>
-                        <div class="text-xs text-gray-500"><?= htmlspecialchars($stream['server_name'] ?? 'No Server') ?></div>
+                        <div class="text-xs text-gray-500">Stream Source</div>
                     </td>
                     <td class="px-3 py-2 text-center">
                         <span class="px-2 py-0.5 rounded text-xs font-medium <?= $clients > 0 ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400' ?>">
