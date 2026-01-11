@@ -119,6 +119,36 @@ install_deps() {
     log_success "Dependencies installed"
 }
 
+setup_geoip() {
+    log_info "Setting up GeoIP..."
+    
+    # Create GeoIP storage directory
+    mkdir -p ${INSTALL_DIR}/storage/geoip
+    
+    # Check if credentials are in .env
+    GEOIP_ACCOUNT=$(grep GEOIP_ACCOUNT_ID ${INSTALL_DIR}/.env 2>/dev/null | cut -d'=' -f2)
+    GEOIP_LICENSE=$(grep GEOIP_LICENSE_KEY ${INSTALL_DIR}/.env 2>/dev/null | cut -d'=' -f2)
+    
+    if [[ -n "$GEOIP_ACCOUNT" && -n "$GEOIP_LICENSE" && "$GEOIP_ACCOUNT" != "" && "$GEOIP_LICENSE" != "" ]]; then
+        # Create GeoIP.conf
+        cat > /etc/GeoIP.conf << EOF
+AccountID ${GEOIP_ACCOUNT}
+LicenseKey ${GEOIP_LICENSE}
+EditionIDs GeoLite2-City GeoLite2-ASN GeoLite2-Country
+DatabaseDirectory ${INSTALL_DIR}/storage/geoip
+EOF
+        
+        # Download databases
+        if command -v geoipupdate &>/dev/null; then
+            geoipupdate -d ${INSTALL_DIR}/storage/geoip 2>/dev/null && log_success "GeoIP databases downloaded" || echo -e "${YELLOW}[!]${NC} GeoIP download skipped - configure credentials in panel"
+        fi
+    else
+        echo -e "${YELLOW}[!]${NC} GeoIP not configured - add credentials in panel settings"
+    fi
+    
+    chown -R www-data:www-data ${INSTALL_DIR}/storage/geoip
+}
+
 setup_db() {
     log_info "Setting up database..."
     DB_PASS=$(openssl rand -base64 24 | tr -dc 'a-zA-Z0-9' | head -c 24)
@@ -360,6 +390,7 @@ main() {
     setup_db
     download_panel
     configure_panel
+    setup_geoip
     configure_nginx
     configure_firewall
     activate_license

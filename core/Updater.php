@@ -82,16 +82,33 @@ class Updater {
             CURLOPT_TIMEOUT => 10,
             CURLOPT_HTTPHEADER => $this->getHeaders()
         ]);
-        $latestVersion = trim(curl_exec($ch)) ?: date('Y.m.d.Hi');
+        $latestVersion = trim(curl_exec($ch));
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
         
+        // If can't get remote version, assume no update
+        if ($httpCode !== 200 || empty($latestVersion)) {
+            return [
+                'available' => false,
+                'current' => $this->currentVersion,
+                'latest' => $this->currentVersion,
+                'notes' => 'Could not check for updates',
+                'date' => null,
+                'url' => null
+            ];
+        }
+        
+        // Compare versions - only show update if remote version is different and newer
+        $hasUpdate = version_compare($latestVersion, $this->currentVersion, '>') 
+                     || ($latestVersion !== $this->currentVersion && strtotime(str_replace('.', '-', $latestVersion)) > strtotime(str_replace('.', '-', $this->currentVersion)));
+        
         return [
-            'available' => true,
+            'available' => $hasUpdate,
             'current' => $this->currentVersion,
             'latest' => $latestVersion,
             'notes' => $data['commit']['message'] ?? 'Latest updates and improvements',
             'date' => $data['commit']['committer']['date'] ?? null,
-            'url' => "https://github.com/{$this->githubRepo}/archive/refs/heads/main.zip"
+            'url' => $hasUpdate ? "https://github.com/{$this->githubRepo}/archive/refs/heads/main.zip" : null
         ];
     }
     
@@ -170,6 +187,12 @@ class Updater {
             
             // Update version file
             file_put_contents($this->installDir . '/VERSION', $info['latest']);
+            
+            // Run composer install if composer.json exists
+            if (file_exists($this->installDir . '/composer.json')) {
+                $composerCmd = 'cd ' . escapeshellarg($this->installDir) . ' && composer install --no-dev --no-interaction 2>&1';
+                exec($composerCmd, $composerOutput, $composerExitCode);
+            }
             
             // Fix permissions
             $this->fixPermissions($this->installDir);
