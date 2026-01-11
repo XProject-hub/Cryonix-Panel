@@ -241,16 +241,80 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
                 
                 <!-- Content -->
                 <div class="nav-item">
-                    <button class="nav-link px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1 <?= str_starts_with($currentRoute, '/streams') || str_starts_with($currentRoute, '/movies') || str_starts_with($currentRoute, '/series') ? 'active' : 'text-gray-400 hover:text-white hover:bg-dark-800' ?>">
+                    <button class="nav-link px-3 py-1.5 rounded text-xs font-medium transition flex items-center gap-1 <?= str_starts_with($currentRoute, '/streams') || str_starts_with($currentRoute, '/movies') || str_starts_with($currentRoute, '/series') || str_starts_with($currentRoute, '/channels') || str_starts_with($currentRoute, '/stations') ? 'active' : 'text-gray-400 hover:text-white hover:bg-dark-800' ?>">
                         CONTENT <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
                     <div class="dropdown">
-                        <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1">
-                            <a href="<?= $adminPath ?>/streams" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Live Channels</a>
-                            <a href="<?= $adminPath ?>/streams/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Add Channel</a>
-                            <div class="border-t border-gray-800/50 my-1"></div>
-                            <a href="<?= $adminPath ?>/movies" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Movies (VOD)</a>
-                            <a href="<?= $adminPath ?>/series" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Series</a>
+                        <div class="glass rounded-lg shadow-xl border border-gray-800/50 py-1 min-w-[160px]">
+                            <!-- Streams -->
+                            <div class="submenu-item relative">
+                                <a href="#" class="flex items-center justify-between px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                    <span>+ Streams</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                                <div class="submenu glass rounded-lg shadow-xl border border-gray-800/50 py-1 min-w-[180px]">
+                                    <a href="<?= $adminPath ?>/streams/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">+ Add Stream</a>
+                                    <a href="<?= $adminPath ?>/streams" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Manage Streams</a>
+                                    <a href="<?= $adminPath ?>/streams/mass-edit" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Mass Edit Streams</a>
+                                    <a href="<?= $adminPath ?>/streams/import" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Import Streams</a>
+                                    <a href="<?= $adminPath ?>/streams/stats" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Streams Statistics</a>
+                                </div>
+                            </div>
+                            <!-- Created Channels -->
+                            <div class="submenu-item relative">
+                                <a href="#" class="flex items-center justify-between px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                    <span>+ Created Channels</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                                <div class="submenu glass rounded-lg shadow-xl border border-gray-800/50 py-1 min-w-[180px]">
+                                    <a href="<?= $adminPath ?>/channels/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">+ Create Channel</a>
+                                    <a href="<?= $adminPath ?>/channels" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Manage Channels</a>
+                                </div>
+                            </div>
+                            <!-- Movies -->
+                            <div class="submenu-item relative">
+                                <a href="#" class="flex items-center justify-between px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                    <span>+ Movies</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                                <div class="submenu glass rounded-lg shadow-xl border border-gray-800/50 py-1 min-w-[180px]">
+                                    <a href="<?= $adminPath ?>/movies/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">+ Add Movie</a>
+                                    <a href="<?= $adminPath ?>/movies" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Manage Movies</a>
+                                    <a href="<?= $adminPath ?>/movies/mass-edit" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Mass Edit Movies</a>
+                                    <a href="<?= $adminPath ?>/movies/import" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Import Movies</a>
+                                    <a href="<?= $adminPath ?>/movies/import-m3u" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Import Movies M3U</a>
+                                    <a href="<?= $adminPath ?>/movies/duplicate" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Duplicate Movies</a>
+                                    <a href="<?= $adminPath ?>/movies/stats" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Movies Statistics</a>
+                                </div>
+                            </div>
+                            <!-- Series -->
+                            <div class="submenu-item relative">
+                                <a href="#" class="flex items-center justify-between px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                    <span>+ Series</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                                <div class="submenu glass rounded-lg shadow-xl border border-gray-800/50 py-1 min-w-[180px]">
+                                    <a href="<?= $adminPath ?>/series/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">+ Add Series</a>
+                                    <a href="<?= $adminPath ?>/series" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Manage Series</a>
+                                    <a href="<?= $adminPath ?>/series/episodes" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Manage Episodes</a>
+                                    <a href="<?= $adminPath ?>/series/mass-edit" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Mass Edit Series</a>
+                                    <a href="<?= $adminPath ?>/series/mass-edit-episodes" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Mass Edit Episodes</a>
+                                    <a href="<?= $adminPath ?>/series/import-m3u" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Import Episodes M3U</a>
+                                    <a href="<?= $adminPath ?>/series/stats" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Series Statistics</a>
+                                </div>
+                            </div>
+                            <!-- Stations -->
+                            <div class="submenu-item relative">
+                                <a href="#" class="flex items-center justify-between px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">
+                                    <span>+ Stations</span>
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                                <div class="submenu glass rounded-lg shadow-xl border border-gray-800/50 py-1 min-w-[180px]">
+                                    <a href="<?= $adminPath ?>/stations/add" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">+ Add Station</a>
+                                    <a href="<?= $adminPath ?>/stations" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Manage Stations</a>
+                                    <a href="<?= $adminPath ?>/stations/mass-edit" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Mass Edit Stations</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

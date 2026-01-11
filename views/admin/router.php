@@ -185,15 +185,61 @@ switch ($section) {
             }
             exit;
         }
+        
+        // Stream actions API
+        if ($action === 'stream-action') {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $streamId = $input['stream_id'] ?? 0;
+            $streamAction = $input['action'] ?? '';
+            
+            require_once CRYONIX_ROOT . '/core/Database.php';
+            $db = \CryonixPanel\Core\Database::getInstance();
+            
+            try {
+                switch ($streamAction) {
+                    case 'restart':
+                        $db->update('streams', ['status' => 'active'], 'id = ?', [$streamId]);
+                        echo json_encode(['success' => true, 'message' => 'Stream restarted']);
+                        break;
+                    case 'stop':
+                        $db->update('streams', ['status' => 'offline'], 'id = ?', [$streamId]);
+                        echo json_encode(['success' => true, 'message' => 'Stream stopped']);
+                        break;
+                    case 'delete':
+                        $db->delete('streams', 'id = ?', [$streamId]);
+                        echo json_encode(['success' => true, 'message' => 'Stream deleted']);
+                        break;
+                    default:
+                        echo json_encode(['success' => false, 'error' => 'Unknown action']);
+                }
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            }
+            exit;
+        }
         break;
         
-    // Live Channels / Streams
-    case 'channels':
+    // Live Streams
     case 'streams':
         if ($action === 'add' || $action === 'edit') {
             require CRYONIX_ROOT . '/views/admin/streams-add.php';
+        } elseif ($action === 'mass-edit') {
+            require CRYONIX_ROOT . '/views/admin/content/streams-mass-edit.php';
+        } elseif ($action === 'import') {
+            require CRYONIX_ROOT . '/views/admin/content/streams-import.php';
+        } elseif ($action === 'stats') {
+            require CRYONIX_ROOT . '/views/admin/content/streams-stats.php';
         } else {
             require CRYONIX_ROOT . '/views/admin/streams.php';
+        }
+        break;
+    
+    // Created Channels
+    case 'channels':
+        if ($action === 'add' || $action === 'edit') {
+            require CRYONIX_ROOT . '/views/admin/content/channels-add.php';
+        } else {
+            require CRYONIX_ROOT . '/views/admin/content/channels.php';
         }
         break;
         
@@ -201,6 +247,16 @@ switch ($section) {
     case 'movies':
         if ($action === 'add' || $action === 'edit') {
             require CRYONIX_ROOT . '/views/admin/movies-add.php';
+        } elseif ($action === 'mass-edit') {
+            require CRYONIX_ROOT . '/views/admin/content/movies-mass-edit.php';
+        } elseif ($action === 'import') {
+            require CRYONIX_ROOT . '/views/admin/content/movies-import.php';
+        } elseif ($action === 'import-m3u') {
+            require CRYONIX_ROOT . '/views/admin/content/movies-import-m3u.php';
+        } elseif ($action === 'duplicate') {
+            require CRYONIX_ROOT . '/views/admin/content/movies-duplicate.php';
+        } elseif ($action === 'stats') {
+            require CRYONIX_ROOT . '/views/admin/content/movies-stats.php';
         } else {
             require CRYONIX_ROOT . '/views/admin/movies.php';
         }
@@ -210,8 +266,29 @@ switch ($section) {
     case 'series':
         if ($action === 'add' || $action === 'edit') {
             require CRYONIX_ROOT . '/views/admin/series-add.php';
+        } elseif ($action === 'episodes') {
+            require CRYONIX_ROOT . '/views/admin/content/episodes.php';
+        } elseif ($action === 'mass-edit') {
+            require CRYONIX_ROOT . '/views/admin/content/series-mass-edit.php';
+        } elseif ($action === 'mass-edit-episodes') {
+            require CRYONIX_ROOT . '/views/admin/content/episodes-mass-edit.php';
+        } elseif ($action === 'import-m3u') {
+            require CRYONIX_ROOT . '/views/admin/content/episodes-import-m3u.php';
+        } elseif ($action === 'stats') {
+            require CRYONIX_ROOT . '/views/admin/content/series-stats.php';
         } else {
             require CRYONIX_ROOT . '/views/admin/series.php';
+        }
+        break;
+    
+    // Stations (Radio)
+    case 'stations':
+        if ($action === 'add' || $action === 'edit') {
+            require CRYONIX_ROOT . '/views/admin/content/stations-add.php';
+        } elseif ($action === 'mass-edit') {
+            require CRYONIX_ROOT . '/views/admin/content/stations-mass-edit.php';
+        } else {
+            require CRYONIX_ROOT . '/views/admin/content/stations.php';
         }
         break;
         
