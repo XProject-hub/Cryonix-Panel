@@ -53,7 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'epg_channel_id' => $_POST['epg_channel_id'] ?? '',
             'direct_source' => isset($_POST['direct_source']) ? 1 : 0,
             'custom_ffmpeg' => $_POST['custom_ffmpeg'] ?? '',
-            'status' => isset($_POST['start_stream']) ? 'active' : 'active'  // Always start as active
+            'status' => 'active',  // Always start as active
+            'started_at' => date('Y-m-d H:i:s')
         ];
         
         if ($isEdit && $streamId) {

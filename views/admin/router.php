@@ -283,6 +283,7 @@ switch ($section) {
                                     'message' => 'Stream offline: ' . ($probe['error'] ?? 'Unknown error'),
                                     'probe' => $probe
                                 ]);
+                            }
                         } else {
                             echo json_encode(['success' => false, 'error' => 'Stream source not configured']);
                         }
