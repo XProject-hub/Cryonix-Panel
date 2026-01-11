@@ -201,17 +201,89 @@ class GeoIP {
     }
     
     /**
-     * Download/update GeoIP databases
+     * Download/update GeoIP databases using geoipupdate
      */
     public function updateDatabases(): array {
         $results = [];
         
+        if (empty($this->accountId) || empty($this->licenseKey)) {
+            return [
+                'error' => 'MaxMind credentials not configured. Add GEOIP_ACCOUNT_ID and GEOIP_LICENSE_KEY to .env'
+            ];
+        }
+        
+        // Create temporary GeoIP.conf
+        $confContent = "AccountID {$this->accountId}\n";
+        $confContent .= "LicenseKey {$this->licenseKey}\n";
+        $confContent .= "EditionIDs GeoLite2-City GeoLite2-ASN GeoLite2-Country\n";
+        $confContent .= "DatabaseDirectory {$this->dbPath}\n";
+        
+        $confFile = '/tmp/GeoIP.conf';
+        file_put_contents($confFile, $confContent);
+        
+        // Check if geoipupdate is installed
+        exec('which geoipupdate 2>&1', $whichOutput, $whichExitCode);
+        
+        if ($whichExitCode !== 0) {
+            // Try to install geoipupdate
+            exec('apt-get update && apt-get install -y geoipupdate 2>&1', $installOutput, $installExitCode);
+            
+            if ($installExitCode !== 0) {
+                // Fallback to manual download
+                return $this->manualDownload();
+            }
+        }
+        
+        // Create database directory
+        if (!is_dir($this->dbPath)) {
+            mkdir($this->dbPath, 0755, true);
+        }
+        
+        // Run geoipupdate
+        exec("geoipupdate -f {$confFile} -d {$this->dbPath} -v 2>&1", $output, $exitCode);
+        
+        // Cleanup config
+        @unlink($confFile);
+        
+        $outputStr = implode("\n", $output);
+        
+        if ($exitCode === 0) {
+            $editions = ['GeoLite2-City', 'GeoLite2-ASN', 'GeoLite2-Country'];
+            foreach ($editions as $edition) {
+                $file = $this->dbPath . "/{$edition}.mmdb";
+                if (file_exists($file)) {
+                    $results[$edition] = ['success' => true, 'size' => filesize($file)];
+                } else {
+                    $results[$edition] = ['success' => false, 'error' => 'File not created'];
+                }
+            }
+        } else {
+            $results['error'] = "geoipupdate failed: " . $outputStr;
+            
+            // Try manual download as fallback
+            return $this->manualDownload();
+        }
+        
+        // Reload databases
+        $this->loadDatabases();
+        
+        return $results;
+    }
+    
+    /**
+     * Manual database download (fallback if geoipupdate fails)
+     */
+    private function manualDownload(): array {
+        $results = [];
         $editions = ['GeoLite2-City', 'GeoLite2-ASN', 'GeoLite2-Country'];
+        
+        if (!is_dir($this->dbPath)) {
+            mkdir($this->dbPath, 0755, true);
+        }
         
         foreach ($editions as $edition) {
             $url = "https://download.maxmind.com/app/geoip_download?edition_id={$edition}&license_key={$this->licenseKey}&suffix=tar.gz";
             $tarFile = "/tmp/{$edition}.tar.gz";
-            $extractDir = "/tmp/{$edition}";
             
             try {
                 // Download
@@ -233,7 +305,6 @@ class GeoIP {
                 file_put_contents($tarFile, $data);
                 
                 // Extract
-                @mkdir($extractDir, 0755, true);
                 exec("cd /tmp && tar -xzf {$tarFile} 2>&1", $output, $exitCode);
                 
                 if ($exitCode !== 0) {

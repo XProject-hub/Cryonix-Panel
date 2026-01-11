@@ -106,6 +106,16 @@ install_deps() {
     # FFmpeg
     apt-get install -y -qq ffmpeg
     
+    # Composer
+    if ! command -v composer &>/dev/null; then
+        curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    fi
+    
+    # GeoIP Update tool (MaxMind)
+    add-apt-repository -y ppa:maxmind/ppa 2>/dev/null || true
+    apt-get update -qq
+    apt-get install -y -qq geoipupdate 2>/dev/null || true
+    
     log_success "Dependencies installed"
 }
 
@@ -128,6 +138,25 @@ download_panel() {
     rm -rf ${INSTALL_DIR}
     git clone --depth 1 https://github.com/${GITHUB_REPO}.git ${INSTALL_DIR}
     rm -rf ${INSTALL_DIR}/.git
+    
+    # Install PHP dependencies
+    cd ${INSTALL_DIR}
+    if [[ -f "composer.json" ]]; then
+        composer install --no-dev --no-interaction --quiet 2>/dev/null || true
+    else
+        # Create composer.json for MaxMind
+        cat > composer.json << 'COMPOSER'
+{
+    "name": "xproject/cryonix-panel",
+    "require": {
+        "maxmind-db/reader": "^1.11",
+        "vlucas/phpdotenv": "^5.5"
+    }
+}
+COMPOSER
+        composer install --no-dev --no-interaction --quiet 2>/dev/null || true
+    fi
+    
     log_success "Downloaded"
 }
 
@@ -151,6 +180,11 @@ DB_PASS=${DB_PASS}
 ADMIN_PATH=${ADMIN_PATH}
 GITHUB_REPO=${GITHUB_REPO}
 LICENSE_KEY=${LICENSE_KEY}
+
+# GeoIP MaxMind - Add your credentials here
+# Get free license at: https://www.maxmind.com/en/geolite2/signup
+GEOIP_ACCOUNT_ID=
+GEOIP_LICENSE_KEY=
 EOF
 
     chown -R www-data:www-data ${INSTALL_DIR}

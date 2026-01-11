@@ -1,0 +1,22 @@
+{
+    "name": "xproject/cryonix-panel",
+    "description": "Cryonix IPTV Panel - Professional Streaming Solution",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.1",
+        "maxmind-db/reader": "^1.11",
+        "vlucas/phpdotenv": "^5.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "CryonixPanel\\": "core/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    }
+}
+
