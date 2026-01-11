@@ -8,8 +8,10 @@ $pageTitle = 'Settings';
 
 require_once CRYONIX_ROOT . '/core/Database.php';
 require_once CRYONIX_ROOT . '/core/Updater.php';
+require_once CRYONIX_ROOT . '/core/GeoIP.php';
 use CryonixPanel\Core\Database;
 use CryonixPanel\Core\Updater;
+use CryonixPanel\Core\GeoIP;
 
 $settings = [];
 $error = '';
@@ -28,6 +30,15 @@ try {
 // Get version info
 $updater = new Updater();
 $currentVersion = $updater->getCurrentVersion();
+
+// Get GeoIP version
+$geoipVersion = 'Not Installed';
+try {
+    $geoip = GeoIP::getInstance();
+    $geoipVersion = $geoip->getVersion();
+} catch (\Exception $e) {
+    // GeoIP not available
+}
 
 // Handle save
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
@@ -102,9 +113,9 @@ ob_start();
             <span class="text-white font-bold"><?= $currentVersion ?></span>
         </div>
         <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+            <span class="w-2 h-2 rounded-full <?= $geoipVersion !== 'Not Installed' ? 'bg-green-500' : 'bg-red-500' ?>"></span>
             <span class="text-gray-400 text-sm">GeoLite2 Version</span>
-            <span class="text-white font-bold">01.03</span>
+            <span class="text-white font-bold"><?= $geoipVersion ?></span>
         </div>
     </div>
     

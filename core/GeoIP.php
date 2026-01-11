@@ -282,7 +282,8 @@ class GeoIP {
                 $status[$edition] = [
                     'exists' => true,
                     'size' => filesize($file),
-                    'modified' => filemtime($file)
+                    'modified' => filemtime($file),
+                    'version' => date('Y.m', filemtime($file))
                 ];
             } else {
                 $status[$edition] = ['exists' => false];
@@ -290,6 +291,27 @@ class GeoIP {
         }
         
         return $status;
+    }
+    
+    /**
+     * Get combined database version string
+     */
+    public function getVersion(): string {
+        $status = $this->getDatabaseStatus();
+        
+        // Check if City database exists (main one)
+        if (isset($status['GeoLite2-City']) && $status['GeoLite2-City']['exists']) {
+            return date('Y.m', $status['GeoLite2-City']['modified']);
+        }
+        
+        // Check any database
+        foreach ($status as $edition => $info) {
+            if ($info['exists']) {
+                return date('Y.m', $info['modified']);
+            }
+        }
+        
+        return 'Not Installed';
     }
 }
 
