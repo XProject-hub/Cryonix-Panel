@@ -177,9 +177,19 @@ ob_start();
                 <?php foreach ($streams as $stream): ?>
                 <?php 
                     $isOnline = $stream['status'] === 'active';
-                    $uptime = $stream['uptime'] ?? 0;
-                    $uptimeStr = gmdate('H\h i\m s\s', $uptime);
-                    $clients = $stream['current_clients'] ?? 0;
+                    
+                    // Calculate real uptime from started_at
+                    $uptime = 0;
+                    if ($isOnline && !empty($stream['started_at'])) {
+                        $uptime = time() - strtotime($stream['started_at']);
+                    }
+                    
+                    $hours = floor($uptime / 3600);
+                    $mins = floor(($uptime % 3600) / 60);
+                    $secs = $uptime % 60;
+                    $uptimeStr = sprintf('%02dh %02dm %02ds', $hours, $mins, $secs);
+                    
+                    $clients = (int)($stream['current_clients'] ?? 0);
                 ?>
                 <tr class="hover:bg-dark-800/30 transition">
                     <td class="px-3 py-2 text-sm text-gray-300"><?= $stream['id'] ?></td>
@@ -241,16 +251,20 @@ ob_start();
                         <?php endif; ?>
                     </td>
                     <td class="px-3 py-2">
-                        <?php if ($isOnline): ?>
+                        <?php if ($isOnline && !empty($stream['bitrate'])): ?>
                         <div class="text-xs text-gray-300">
-                            <span class="text-green-400"><?= rand(1000, 9000) ?> kbps</span> 
-                            <span class="text-gray-500"><?= rand(720, 1920) ?>x<?= rand(480, 1080) ?></span>
+                            <span class="text-green-400"><?= number_format($stream['bitrate']) ?> kbps</span> 
+                            <span class="text-gray-500"><?= $stream['resolution'] ?? '-' ?></span>
                         </div>
                         <div class="text-xs text-gray-500">
-                            h264 • aac @ <?= ['0.99', '0.95', '0.88'][array_rand(['0.99', '0.95', '0.88'])] ?>x • <?= rand(24, 60) ?> FPS
+                            <?= $stream['codec_video'] ?? 'N/A' ?> • <?= $stream['codec_audio'] ?? 'N/A' ?> @ <?= $stream['fps'] ?? '0' ?> FPS
                         </div>
+                        <?php elseif ($isOnline): ?>
+                        <button onclick="probeStream(<?= $stream['id'] ?>)" class="px-2 py-1 rounded text-xs bg-amber-500/20 text-amber-400 hover:bg-amber-500/30">
+                            Probe Info
+                        </button>
                         <?php else: ?>
-                        <span class="text-xs text-gray-500 italic">No information available</span>
+                        <span class="text-xs text-gray-500 italic">Offline</span>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -332,6 +346,33 @@ function streamAction(id, action) {
 
 function playStream(id) {
     window.open('<?= ADMIN_PATH ?>/player/' + id, 'player', 'width=800,height=600');
+}
+
+function probeStream(id) {
+    const btn = event.target;
+    btn.textContent = 'Probing...';
+    btn.disabled = true;
+    
+    fetch('<?= ADMIN_PATH ?>/api/stream-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stream_id: id, action: 'probe' })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success && data.online) {
+            location.reload();
+        } else {
+            alert(data.message || 'Stream probe failed');
+            btn.textContent = 'Probe Info';
+            btn.disabled = false;
+        }
+    })
+    .catch(err => {
+        alert('Error: ' + err.message);
+        btn.textContent = 'Probe Info';
+        btn.disabled = false;
+    });
 }
 </script>
 

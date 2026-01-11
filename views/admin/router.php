@@ -219,14 +219,20 @@ switch ($section) {
                         // Get stream and test if source is accessible
                         $stream = $db->fetch("SELECT stream_source FROM streams WHERE id = ?", [$streamId]);
                         if ($stream && !empty($stream['stream_source'])) {
-                            $db->update('streams', ['status' => 'active'], 'id = ?', [$streamId]);
+                            $db->update('streams', [
+                                'status' => 'active',
+                                'started_at' => date('Y-m-d H:i:s')
+                            ], 'id = ?', [$streamId]);
                             echo json_encode(['success' => true, 'message' => 'Stream started']);
                         } else {
                             echo json_encode(['success' => false, 'error' => 'Stream source not found']);
                         }
                         break;
                     case 'stop':
-                        $db->update('streams', ['status' => 'offline'], 'id = ?', [$streamId]);
+                        $db->update('streams', [
+                            'status' => 'offline',
+                            'started_at' => null
+                        ], 'id = ?', [$streamId]);
                         echo json_encode(['success' => true, 'message' => 'Stream stopped']);
                         break;
                     case 'delete':
@@ -234,26 +240,49 @@ switch ($section) {
                         echo json_encode(['success' => true, 'message' => 'Stream deleted']);
                         break;
                     case 'test':
-                        // Test if stream URL is accessible
+                    case 'probe':
+                        // Test stream with FFprobe for real info
                         $stream = $db->fetch("SELECT stream_source FROM streams WHERE id = ?", [$streamId]);
                         if ($stream && !empty($stream['stream_source'])) {
-                            $ch = curl_init($stream['stream_source']);
-                            curl_setopt($ch, CURLOPT_NOBODY, true);
-                            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-                            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                            curl_setopt($ch, CURLOPT_USERAGENT, 'Cryonix-Panel/1.0');
-                            curl_exec($ch);
-                            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                            curl_close($ch);
+                            require_once CRYONIX_ROOT . '/core/StreamProbe.php';
+                            $probe = \CryonixPanel\Core\StreamProbe::probe($stream['stream_source'], 10);
                             
-                            if ($httpCode >= 200 && $httpCode < 400) {
-                                $db->update('streams', ['status' => 'active'], 'id = ?', [$streamId]);
-                                echo json_encode(['success' => true, 'message' => 'Stream is online (HTTP ' . $httpCode . ')', 'online' => true]);
+                            if ($probe['online']) {
+                                // Update stream with real info
+                                $updateData = [
+                                    'status' => 'active',
+                                    'last_check_at' => date('Y-m-d H:i:s')
+                                ];
+                                
+                                // Set started_at if not already set
+                                $currentStream = $db->fetch("SELECT started_at FROM streams WHERE id = ?", [$streamId]);
+                                if (empty($currentStream['started_at'])) {
+                                    $updateData['started_at'] = date('Y-m-d H:i:s');
+                                }
+                                
+                                if ($probe['bitrate']) $updateData['bitrate'] = $probe['bitrate'];
+                                if ($probe['resolution']) $updateData['resolution'] = $probe['resolution'];
+                                if ($probe['codec_video']) $updateData['codec_video'] = $probe['codec_video'];
+                                if ($probe['codec_audio']) $updateData['codec_audio'] = $probe['codec_audio'];
+                                if ($probe['fps']) $updateData['fps'] = $probe['fps'];
+                                
+                                $db->update('streams', $updateData, 'id = ?', [$streamId]);
+                                
+                                $info = \CryonixPanel\Core\StreamProbe::formatInfo($probe);
+                                echo json_encode([
+                                    'success' => true,
+                                    'online' => true,
+                                    'message' => 'Stream online: ' . $info,
+                                    'probe' => $probe
+                                ]);
                             } else {
                                 $db->update('streams', ['status' => 'offline'], 'id = ?', [$streamId]);
-                                echo json_encode(['success' => true, 'message' => 'Stream offline (HTTP ' . $httpCode . ')', 'online' => false]);
-                            }
+                                echo json_encode([
+                                    'success' => true,
+                                    'online' => false,
+                                    'message' => 'Stream offline: ' . ($probe['error'] ?? 'Unknown error'),
+                                    'probe' => $probe
+                                ]);
                         } else {
                             echo json_encode(['success' => false, 'error' => 'Stream source not configured']);
                         }
@@ -405,7 +434,7 @@ switch ($section) {
     
     // Stream Player
     case 'player':
-        $_GET['id'] = $pathParts[1] ?? 0;
+        $_GET['id'] = $action ?? 0;  // action = routeParts[1] = stream ID
         require CRYONIX_ROOT . '/views/admin/player.php';
         exit;
         
