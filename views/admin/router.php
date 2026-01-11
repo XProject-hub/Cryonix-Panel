@@ -215,8 +215,15 @@ switch ($section) {
             try {
                 switch ($streamAction) {
                     case 'restart':
-                        $db->update('streams', ['status' => 'active'], 'id = ?', [$streamId]);
-                        echo json_encode(['success' => true, 'message' => 'Stream restarted']);
+                    case 'start':
+                        // Get stream and test if source is accessible
+                        $stream = $db->fetch("SELECT stream_source FROM streams WHERE id = ?", [$streamId]);
+                        if ($stream && !empty($stream['stream_source'])) {
+                            $db->update('streams', ['status' => 'active'], 'id = ?', [$streamId]);
+                            echo json_encode(['success' => true, 'message' => 'Stream started']);
+                        } else {
+                            echo json_encode(['success' => false, 'error' => 'Stream source not found']);
+                        }
                         break;
                     case 'stop':
                         $db->update('streams', ['status' => 'offline'], 'id = ?', [$streamId]);
@@ -225,6 +232,31 @@ switch ($section) {
                     case 'delete':
                         $db->delete('streams', 'id = ?', [$streamId]);
                         echo json_encode(['success' => true, 'message' => 'Stream deleted']);
+                        break;
+                    case 'test':
+                        // Test if stream URL is accessible
+                        $stream = $db->fetch("SELECT stream_source FROM streams WHERE id = ?", [$streamId]);
+                        if ($stream && !empty($stream['stream_source'])) {
+                            $ch = curl_init($stream['stream_source']);
+                            curl_setopt($ch, CURLOPT_NOBODY, true);
+                            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+                            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                            curl_setopt($ch, CURLOPT_USERAGENT, 'Cryonix-Panel/1.0');
+                            curl_exec($ch);
+                            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                            curl_close($ch);
+                            
+                            if ($httpCode >= 200 && $httpCode < 400) {
+                                $db->update('streams', ['status' => 'active'], 'id = ?', [$streamId]);
+                                echo json_encode(['success' => true, 'message' => 'Stream is online (HTTP ' . $httpCode . ')', 'online' => true]);
+                            } else {
+                                $db->update('streams', ['status' => 'offline'], 'id = ?', [$streamId]);
+                                echo json_encode(['success' => true, 'message' => 'Stream offline (HTTP ' . $httpCode . ')', 'online' => false]);
+                            }
+                        } else {
+                            echo json_encode(['success' => false, 'error' => 'Stream source not configured']);
+                        }
                         break;
                     default:
                         echo json_encode(['success' => false, 'error' => 'Unknown action']);
@@ -370,6 +402,12 @@ switch ($section) {
     case 'geoip':
         require CRYONIX_ROOT . '/views/admin/geoip.php';
         break;
+    
+    // Stream Player
+    case 'player':
+        $_GET['id'] = $pathParts[1] ?? 0;
+        require CRYONIX_ROOT . '/views/admin/player.php';
+        exit;
         
     // Activity log
     case 'activity':

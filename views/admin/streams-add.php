@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'epg_channel_id' => $_POST['epg_channel_id'] ?? '',
             'direct_source' => isset($_POST['direct_source']) ? 1 : 0,
             'custom_ffmpeg' => $_POST['custom_ffmpeg'] ?? '',
-            'status' => $_POST['start_stream'] ? 'active' : 'inactive'
+            'status' => isset($_POST['start_stream']) ? 'active' : 'active'  // Always start as active
         ];
         
         if ($isEdit && $streamId) {
@@ -352,7 +352,7 @@ ob_start();
                 <label class="form-label-normal">Timeshift Days</label>
                 <input type="number" name="timeshift_days" value="0" class="form-input">
                 <label class="form-label-normal">Start Stream Now</label>
-                <label class="toggle"><input type="checkbox" name="start_stream" value="1"><span class="toggle-slider"></span></label>
+                <label class="toggle"><input type="checkbox" name="start_stream" value="1" checked><span class="toggle-slider"></span></label>
             </div>
             <div class="flex justify-between mt-4">
                 <button type="button" onclick="prevTab('epg')" class="px-6 py-2 rounded-lg bg-gray-700 text-white font-medium hover:bg-gray-600 transition">Previous</button>
