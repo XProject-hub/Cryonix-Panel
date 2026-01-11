@@ -125,6 +125,7 @@ $currentRoute = $_SERVER['ADMIN_ROUTE'] ?? '/dashboard';
                                     <a href="<?= $adminPath ?>/subresellers" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Subresellers</a>
                                     <a href="<?= $adminPath ?>/transcode" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Transcode Profiles</a>
                                     <a href="<?= $adminPath ?>/provider-check" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">Provider Con Check</a>
+                                    <a href="<?= $adminPath ?>/geoip" class="block px-3 py-1.5 text-xs text-gray-400 hover:text-white hover:bg-cryo-500/10">GeoIP Settings</a>
                                 </div>
                             </div>
                             <!-- Security -->

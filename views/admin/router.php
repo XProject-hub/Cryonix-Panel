@@ -186,6 +186,23 @@ switch ($section) {
             exit;
         }
         
+        // Kill connection API
+        if ($action === 'kill-connection') {
+            $input = json_decode(file_get_contents('php://input'), true);
+            $connId = $input['connection_id'] ?? 0;
+            
+            require_once CRYONIX_ROOT . '/core/Database.php';
+            $db = \CryonixPanel\Core\Database::getInstance();
+            
+            try {
+                $db->update('connections', ['is_active' => 0, 'ended_at' => date('Y-m-d H:i:s')], 'id = ?', [$connId]);
+                echo json_encode(['success' => true]);
+            } catch (\Exception $e) {
+                echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+            }
+            exit;
+        }
+        
         // Stream actions API
         if ($action === 'stream-action') {
             $input = json_decode(file_get_contents('php://input'), true);
@@ -347,6 +364,11 @@ switch ($section) {
     // License
     case 'license':
         require CRYONIX_ROOT . '/views/admin/license.php';
+        break;
+    
+    // GeoIP
+    case 'geoip':
+        require CRYONIX_ROOT . '/views/admin/geoip.php';
         break;
         
     // Activity log
